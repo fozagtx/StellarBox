@@ -43,6 +43,31 @@ function isWalletDeploy(func: string): boolean {
   }
 }
 
+const RELAY_NOT_CONFIGURED_MESSAGE =
+  "Fee sponsoring is not configured: set CHANNELS_API_KEY on the stellabox-api service.";
+const MAX_RELAY_ERROR_LENGTH = 300;
+
+function sanitizeRelayErrorText(value: string): string {
+  const apiKey = process.env.CHANNELS_API_KEY;
+  const redactedApiKey = apiKey ? value.replaceAll(apiKey, "[redacted]") : value;
+  return redactedApiKey.replace(/\bS[A-Z2-7]{55}\b/g, "[redacted]");
+}
+
+function relayErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return sanitizeRelayErrorText(message).slice(0, MAX_RELAY_ERROR_LENGTH);
+}
+
+class RelaySubmissionFailure extends Error {
+  constructor(error: unknown) {
+    super(relayErrorMessage(error));
+    this.name = "RelaySubmissionFailure";
+    if (error instanceof Error && error.stack) {
+      this.stack = sanitizeRelayErrorText(error.stack);
+    }
+  }
+}
+
 async function consumeDeployRateLimit(db: Database, ip: string): Promise<boolean> {
   const key = `wallet-deploy:${ip}`;
   const result = await db.execute(sql`
@@ -133,22 +158,34 @@ export function createApiApp(db: Database) {
           return;
         }
       }
-      const channels = createChannelsClient();
-      const transaction = transactionXdr
-        ? await submitXdrTransaction({ xdr: transactionXdr }, channels)
-        : await submitSorobanTransaction(
-            {
-              func: request.body.func,
-              auth: request.body.auth,
-            },
-            channels
-          );
-      response.json({
-        success: true,
-        hash: transaction.hash,
-        transactionId: transaction.transactionId,
-        status: transaction.status,
-      });
+      if (!process.env.CHANNELS_API_KEY) {
+        response.status(503).json({
+          success: false,
+          error: "relayer_not_configured",
+          message: RELAY_NOT_CONFIGURED_MESSAGE,
+        });
+        return;
+      }
+      try {
+        const channels = createChannelsClient();
+        const transaction = transactionXdr
+          ? await submitXdrTransaction({ xdr: transactionXdr }, channels)
+          : await submitSorobanTransaction(
+              {
+                func: request.body.func,
+                auth: request.body.auth,
+              },
+              channels
+            );
+        response.json({
+          success: true,
+          hash: transaction.hash,
+          transactionId: transaction.transactionId,
+          status: transaction.status,
+        });
+      } catch (error) {
+        next(new RelaySubmissionFailure(error));
+      }
     } catch (error) {
       next(error);
     }
@@ -236,7 +273,13 @@ export function createApiApp(db: Database) {
   app.get("/health", async (_request, response, next) => {
     try {
       await db.execute(sql`SELECT 1`);
-      response.json({ status: "ok" });
+      response.json({
+        ok: true,
+        channelsConfigured: Boolean(process.env.CHANNELS_API_KEY),
+        vapidConfigured: Boolean(
+          config.vapidPublicKey && config.vapidPrivateKey
+        ),
+      });
     } catch (error) {
       next(error);
     }
@@ -244,7 +287,18 @@ export function createApiApp(db: Database) {
 
   app.use((error: unknown, request: express.Request, response: express.Response, next: express.NextFunction) => {
     void next;
+    const errorStack =
+      error instanceof Error ? error.stack ?? error.message : String(error);
+    console.error(`${request.method} ${request.path}`, errorStack);
     const mapped = mapApiError(error);
+    if (error instanceof RelaySubmissionFailure) {
+      response.status(502).json({
+        success: false,
+        error: "relay_failed",
+        message: error.message,
+      });
+      return;
+    }
     response.status(mapped.status).json(
       request.path === "/relay"
         ? { success: false, ...mapped.body }

@@ -4,7 +4,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import type { Response } from "express";
 import type { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import { StrKey, xdr } from "@stellar/stellar-sdk";
+import { Address, StrKey, xdr } from "@stellar/stellar-sdk";
 import {
   agentKeys,
   approvals,
@@ -20,6 +20,7 @@ import {
   wallets,
 } from "@stellabox/db";
 import { AgentKeyStore } from "@stellabox/signer";
+import { loadStellarConfig } from "@stellabox/stellar";
 import { createApiApp } from "./app.js";
 import { PostgresOAuthProvider } from "./oauth.js";
 import { mapApiError } from "./api-errors.js";
@@ -275,6 +276,103 @@ describe("Postgres OAuth provider", () => {
       .limit(1);
     expect(stored?.grantId).toBe(activeGrantId);
     expect(stored?.grantId).not.toBe(expiredGrantId);
+  });
+});
+
+describe("health and relay configuration", () => {
+  it("returns public configuration booleans without requiring a session", async () => {
+    const channelsConfigured = Boolean(process.env.CHANNELS_API_KEY);
+    const vapidConfigured = Boolean(
+      process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
+    );
+    const server = createApiApp(db).listen(0, "127.0.0.1");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("listening", resolve);
+        server.once("error", reject);
+      });
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("API test server did not bind to a TCP port");
+      }
+      const result = await fetch(
+        `http://127.0.0.1:${address.port}/health`
+      );
+      expect(result.status).toBe(200);
+      expect(await result.json()).toEqual({
+        ok: true,
+        channelsConfigured,
+        vapidConfigured,
+      });
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
+  });
+
+  it("reports an unconfigured relayer for wallet deployment", async () => {
+    const originalChannelsApiKey = process.env.CHANNELS_API_KEY;
+    const rateLimitKey = "wallet-deploy:127.0.0.1";
+    delete process.env.CHANNELS_API_KEY;
+    await db.delete(rateLimits).where(eq(rateLimits.key, rateLimitKey));
+    try {
+      const wasmHash = loadStellarConfig().accountWasmHash;
+      const func = xdr.HostFunction.hostFunctionTypeCreateContractV2(
+        new xdr.CreateContractArgsV2({
+          executable: xdr.ContractExecutable.contractExecutableWasm(
+            Buffer.from(wasmHash, "hex")
+          ),
+          contractIdPreimage:
+            xdr.ContractIdPreimage.contractIdPreimageFromAddress(
+              new xdr.ContractIdPreimageFromAddress({
+                address: new Address(
+                  StrKey.encodeEd25519PublicKey(randomBytes(32))
+                ).toScAddress(),
+                salt: Buffer.alloc(32),
+              })
+            ),
+          constructorArgs: [],
+        })
+      ).toXDR("base64");
+      const server = createApiApp(db).listen(0, "127.0.0.1");
+      try {
+        await new Promise<void>((resolve, reject) => {
+          server.once("listening", resolve);
+          server.once("error", reject);
+        });
+        const address = server.address();
+        if (!address || typeof address === "string") {
+          throw new Error("API test server did not bind to a TCP port");
+        }
+        const result = await fetch(
+          `http://127.0.0.1:${address.port}/relay`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ func, auth: [] }),
+          }
+        );
+        expect(result.status).toBe(503);
+        expect(await result.json()).toEqual({
+          success: false,
+          error: "relayer_not_configured",
+          message:
+            "Fee sponsoring is not configured: set CHANNELS_API_KEY on the stellabox-api service.",
+        });
+      } finally {
+        await new Promise<void>((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()));
+        });
+      }
+    } finally {
+      if (originalChannelsApiKey === undefined) {
+        delete process.env.CHANNELS_API_KEY;
+      } else {
+        process.env.CHANNELS_API_KEY = originalChannelsApiKey;
+      }
+      await db.delete(rateLimits).where(eq(rateLimits.key, rateLimitKey));
+    }
   });
 });
 
