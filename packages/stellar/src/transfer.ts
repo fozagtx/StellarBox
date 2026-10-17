@@ -8,7 +8,10 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { loadStellarConfig } from "./config.js";
-import { signAgentAuthEntry } from "./auth.js";
+import {
+  signAgentAuthEntry,
+  signAgentAuthEntryWithKeyStore,
+} from "./auth.js";
 
 export interface AgentTransfer {
   func: string;
@@ -38,17 +41,28 @@ function simulationError(result: rpc.Api.SimulateTransactionResponse): string | 
 }
 
 export async function prepareAgentCall(input: {
-  sourceSecret: string;
+  sourceSecret?: string;
+  sourcePublicKey?: string;
   targetContract: string;
   targetFunction: string;
   targetArgs: xdr.ScVal[];
   contextRuleId: number;
-  agentSecret: string;
+  agentSecret?: string;
+  agentPublicKey?: Buffer;
+  signAgentDigest?: (digest: Buffer) => Promise<Uint8Array>;
   server?: rpc.Server;
 }): Promise<PreparedAgentCall> {
   const config = loadStellarConfig();
   const server = input.server ?? new rpc.Server(config.rpcUrl);
-  const source = Keypair.fromSecret(input.sourceSecret);
+  const source = input.sourceSecret
+    ? Keypair.fromSecret(input.sourceSecret)
+    : input.sourcePublicKey
+      ? Keypair.fromPublicKey(input.sourcePublicKey)
+      : undefined;
+  if (!source) throw new Error("A source public key or secret is required");
+  if (!input.agentSecret && (!input.agentPublicKey || !input.signAgentDigest)) {
+    throw new Error("An agent secret or encrypted-key signer is required");
+  }
   const hostFunction = invokeContract(
     input.targetContract,
     input.targetFunction,
@@ -87,15 +101,27 @@ export async function prepareAgentCall(input: {
   if (latestLedger === undefined) {
     return { func, auth: [], simulationError: "Simulation did not return its latest ledger" };
   }
-  const signedEntries = authEntries.map((entry) =>
-    signAgentAuthEntry({
-      entry,
-      secretKey: input.agentSecret,
-      ed25519Verifier: config.ed25519Verifier,
-      networkPassphrase: config.networkPassphrase,
-      contextRuleIds: [input.contextRuleId],
-      expirationLedger: latestLedger + 60,
-    })
+  const signedEntries = await Promise.all(
+    authEntries.map((entry) =>
+      input.agentSecret
+        ? signAgentAuthEntry({
+            entry,
+            secretKey: input.agentSecret,
+            ed25519Verifier: config.ed25519Verifier,
+            networkPassphrase: config.networkPassphrase,
+            contextRuleIds: [input.contextRuleId],
+            expirationLedger: latestLedger + 60,
+          })
+        : signAgentAuthEntryWithKeyStore({
+            entry,
+            publicKey: input.agentPublicKey!,
+            ed25519Verifier: config.ed25519Verifier,
+            networkPassphrase: config.networkPassphrase,
+            contextRuleIds: [input.contextRuleId],
+            expirationLedger: latestLedger + 60,
+            signDigest: input.signAgentDigest!,
+          })
+    )
   );
 
   const resimulationTransaction = new TransactionBuilder(sourceAccount, {

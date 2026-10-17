@@ -18,6 +18,7 @@ export interface SpendingLimitData {
 
 export interface Budget {
   spendingLimit: bigint;
+  periodLedgers: number;
   spentInWindow: bigint;
   remaining: bigint;
   txMax: bigint;
@@ -101,7 +102,7 @@ async function simulateRead(
 }
 
 export async function readBudget(input: {
-  sourceSecret: string;
+  sourcePublicKey?: string;
   smartAccount: string;
   contextRuleId: number;
   currentLedger?: number;
@@ -109,7 +110,9 @@ export async function readBudget(input: {
 }): Promise<Budget> {
   const config = loadStellarConfig();
   const server = input.server ?? new rpc.Server(config.rpcUrl);
-  const source = Keypair.fromSecret(input.sourceSecret);
+  const source = Keypair.fromPublicKey(
+    input.sourcePublicKey ?? config.readSourceAccount
+  );
   const [spendingLimitResult, txMaxResult, currentLedger] = await Promise.all([
     simulateRead(server, source, config.networkPassphrase, config.spendingLimitPolicy, "get_spending_limit_data", [
       nativeToScVal(input.contextRuleId, { type: "u32" }),
@@ -125,6 +128,7 @@ export async function readBudget(input: {
   const { spentInWindow, remaining } = remainingSpendingLimit(spending, currentLedger);
   return {
     spendingLimit: spending.spending_limit,
+    periodLedgers: spending.period_ledgers,
     spentInWindow,
     remaining,
     txMax: asBigInt(txMaxResult),

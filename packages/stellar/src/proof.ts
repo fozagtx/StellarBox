@@ -130,7 +130,7 @@ function addressSignature(
   ]);
 }
 
-function signDelegatedAuthEntries(input: {
+export function signDelegatedAuthEntries(input: {
   entries: xdr.SorobanAuthorizationEntry[];
   smartAccount: string;
   owner: Keypair;
@@ -307,7 +307,7 @@ async function waitForTransaction(
   return response;
 }
 
-function deriveContractId(
+export function deriveContractId(
   deployer: string,
   salt: Buffer,
   networkPassphrase: string
@@ -326,7 +326,7 @@ function deriveContractId(
   return StrKey.encodeContract(hash(preimage.toXDR()));
 }
 
-async function ensureFunded(
+export async function ensureFunded(
   keypair: Keypair,
   server: rpc.Server
 ): Promise<void> {
