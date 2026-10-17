@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = ["contracts/tx-max-policy"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+soroban-sdk = { version = "=26.1.0", features = ["experimental_spec_shaking_v2"] }
+stellar-accounts = { git = "https://github.com/OpenZeppelin/stellar-contracts", rev = "1e513890ecf79833c9d6e7ef38a9358001c0b111", version = "0.7.1" }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
