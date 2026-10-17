@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { Fingerprint } from "lucide-react";
 import { ApiError, api } from "../../lib/api";
-import { createWallet, login } from "../../lib/kit";
+import {
+  createWallet,
+  friendlyPasskeyError,
+  getKit,
+  login,
+} from "../../lib/kit";
 import { Logo } from "../../components/logo";
 import { Button, ErrorNote, Field, inputClass } from "../../components/ui";
 
@@ -17,8 +22,10 @@ export default function OnboardingPage() {
   const [busy, setBusy] = useState<"create" | "login">();
   const [error, setError] = useState<unknown>();
   const [step, setStep] = useState<string>();
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   useEffect(() => {
+    void getKit().catch(() => undefined);
     void api.session().then(() => window.location.replace(nextPath())).catch(() => undefined);
   }, []);
 
@@ -32,12 +39,13 @@ export default function OnboardingPage() {
         await api.session();
       } catch (reason) {
         if (!(reason instanceof ApiError) || reason.status !== 401) throw reason;
-        setStep("Signing in with your new passkey…");
-        await login();
+        setNeedsSignIn(true);
+        setStep("Wallet created. Tap “Sign in with passkey” to finish.");
+        return;
       }
       window.location.assign(nextPath());
     } catch (reason) {
-      setError(reason);
+      setError(friendlyPasskeyError(reason));
       setStep(undefined);
     } finally {
       setBusy(undefined);
@@ -51,7 +59,7 @@ export default function OnboardingPage() {
       await login();
       window.location.assign(nextPath());
     } catch (reason) {
-      setError(reason);
+      setError(friendlyPasskeyError(reason));
     } finally {
       setBusy(undefined);
     }
@@ -76,7 +84,12 @@ export default function OnboardingPage() {
               <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ada Lovelace" />
             </Field>
           </div>
-          <Button className="mt-5 w-full" onClick={() => void create()} disabled={!!busy}>
+          <Button
+            variant={needsSignIn ? "secondary" : "primary"}
+            className="mt-5 w-full"
+            onClick={() => void create()}
+            disabled={!!busy || needsSignIn}
+          >
             {busy === "create" ? "Working…" : "Create wallet with passkey"}
           </Button>
           {step ? <p className="mt-3 text-[13px] text-muted">{step}</p> : null}
@@ -85,7 +98,12 @@ export default function OnboardingPage() {
             already have one
             <span className="h-px flex-1 bg-line" />
           </div>
-          <Button variant="secondary" className="w-full" onClick={() => void signIn()} disabled={!!busy}>
+          <Button
+            variant={needsSignIn ? "primary" : "secondary"}
+            className="w-full"
+            onClick={() => void signIn()}
+            disabled={!!busy}
+          >
             {busy === "login" ? "Waiting for passkey…" : "Sign in with passkey"}
           </Button>
           <div className="mt-4">

@@ -1,6 +1,6 @@
 "use client";
 
-import { startAuthentication } from "@simplewebauthn/browser";
+import { startAuthentication, WebAuthnError } from "@simplewebauthn/browser";
 import { xdr } from "@stellar/stellar-sdk";
 import { createEd25519Signer, LocalStorageAdapter } from "smart-account-kit";
 import type { SmartAccountKit as SmartAccountKitType } from "smart-account-kit";
@@ -25,6 +25,35 @@ function encodeBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function hasErrorName(reason: unknown, name: string): boolean {
+  return (
+    typeof reason === "object" &&
+    reason !== null &&
+    "name" in reason &&
+    reason.name === name
+  );
+}
+
+function errorCause(reason: unknown): unknown {
+  return typeof reason === "object" && reason !== null && "cause" in reason
+    ? reason.cause
+    : undefined;
+}
+
+export function friendlyPasskeyError(reason: unknown): unknown {
+  if (
+    hasErrorName(reason, "NotAllowedError") ||
+    hasErrorName(errorCause(reason), "NotAllowedError") ||
+    (reason instanceof WebAuthnError &&
+      reason.code === "ERROR_CEREMONY_ABORTED")
+  ) {
+    return new Error(
+      "The passkey prompt was cancelled or timed out. Tap the button again and finish the prompt."
+    );
+  }
+  return reason;
 }
 
 function patchRelayerFetch(relayerUrl: string): void {
@@ -84,7 +113,9 @@ export async function getKit(): Promise<Kit> {
 function credentialIdFromStorage(): string {
   const credentialId = window.localStorage.getItem(CREDENTIAL_ID_KEY);
   if (!credentialId) {
-    throw new Error("No passkey credential is saved in this browser");
+    throw new Error(
+      "No StellaBox passkey is saved in this browser yet. Create a wallet first."
+    );
   }
   return credentialId;
 }
