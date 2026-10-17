@@ -1,6 +1,7 @@
 import {
   Address,
   Contract,
+  StrKey,
   TransactionBuilder,
   nativeToScVal,
   rpc,
@@ -173,27 +174,30 @@ export async function verifyUsdcTransfer(
 ): Promise<boolean> {
   const result = await server.getTransaction(txHash);
   if (result.status !== "SUCCESS") return false;
-  const events = (result as unknown as {
-    events?: Array<{
-      contractId?: string;
-      topic?: xdr.ScVal[];
-      value?: xdr.ScVal;
-    }>;
-  }).events ?? [];
+  const events = result.events?.contractEventsXdr.flat() ?? [];
   const config = loadStellarConfig();
   return events.some((event) => {
-    if (event.contractId !== config.usdcSac || !event.topic || !event.value) {
+    const contractId = event.contractId();
+    if (
+      event.type().name !== "contract" ||
+      !contractId ||
+      StrKey.encodeContract(Buffer.from(contractId as unknown as Uint8Array)) !==
+        config.usdcSac
+    ) {
       return false;
     }
-    const topic = event.topic.map((item) => {
-      if (item.switch().name === "scvAddress") {
-        return Address.fromScAddress(item.address()).toString();
-      }
-      return scValToNative(item);
-    });
-    if (topic[0] !== "transfer") return false;
-    const eventAmount = BigInt(String(scValToNative(event.value!)));
-    return topic.includes(recipient) && eventAmount === amountStroops;
+    const body = event.body().v0();
+    const topics = body.topics();
+    if (
+      topics.length < 3 ||
+      topics[0]?.switch().name !== "scvSymbol" ||
+      topics[0].sym().toString() !== "transfer" ||
+      topics[2]?.switch().name !== "scvAddress" ||
+      Address.fromScAddress(topics[2].address()).toString() !== recipient
+    ) {
+      return false;
+    }
+    return BigInt(String(scValToNative(body.data()))) === amountStroops;
   });
 }
 
