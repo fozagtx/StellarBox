@@ -4,7 +4,7 @@ StellaBox is a non-custodial Stellar smart-account wallet that lets AI agents ma
 
 ## Deploy to Render
 
-[Deploy StellaBox to Render](https://render.com/deploy?repo=https://github.com/fozagtx/StellarBox) with the Blueprint. It creates the API, paid API, web app, and a free PostgreSQL database. The API migrations run when the service starts. Render generates the session and keystore secrets automatically.
+[Deploy StellaBox to Render](https://render.com/deploy?repo=https://github.com/fozagtx/StellarBox) with the Blueprint. It creates the API, paid API, and web app. Paste any PostgreSQL connection string (Render, Neon, Supabase) as `DATABASE_URL` on the API service; Render allows only one free database per workspace, so the Blueprint doesn't create one. The API migrations run when the service starts. Render generates the session and keystore secrets automatically.
 
 Fill in these Blueprint values:
 
