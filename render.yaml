@@ -9,7 +9,7 @@ services:
     name: stellabox-api
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    buildCommand: pnpm install --frozen-lockfile
     startCommand: pnpm --filter @stellabox/db db:migrate && pnpm --filter @stellabox/api start
     envVars:
       - key: DATABASE_URL
@@ -38,7 +38,7 @@ services:
     name: stellabox-paid-api
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    buildCommand: pnpm install --frozen-lockfile
     startCommand: pnpm --filter @stellabox/paid-api start
     envVars:
       - key: PAID_API_FACILITATOR_SECRET
@@ -48,7 +48,7 @@ services:
     name: stellabox-web
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @stellabox/web build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @stellabox/web build
     startCommand: pnpm --filter @stellabox/web start
     envVars:
       - key: API_HOST
