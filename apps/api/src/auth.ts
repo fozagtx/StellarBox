@@ -8,6 +8,7 @@ import { and, eq, gt } from "drizzle-orm";
 import type { Database } from "@stellabox/db";
 import {
   createSession,
+  findWalletForUser,
   findPasskeyByCredentialId,
   sessions,
   passkeys,
@@ -121,6 +122,31 @@ export function createAuthRouter(
   const router = Router();
   const config = loadApiConfig();
   const rpID = new URL(config.webUrl).hostname;
+
+  router.get("/auth/session", requireSession, async (_request, response, next) => {
+    try {
+      const userId = response.locals.userId as string;
+      const wallet = await findWalletForUser(db, userId);
+      const [passkey] = await db
+        .select()
+        .from(passkeys)
+        .where(eq(passkeys.userId, userId))
+        .limit(1);
+      if (!wallet || !passkey) {
+        response.status(401).json({ error: "unauthorized" });
+        return;
+      }
+      response.json({
+        authenticated: true,
+        userId,
+        walletId: wallet.id,
+        contractId: wallet.contractAddress,
+        credentialId: passkey.credentialId,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.post("/auth/options", async (request, response, next) => {
     try {

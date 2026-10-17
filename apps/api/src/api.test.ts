@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import type { Response } from "express";
 import type { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { StrKey, xdr } from "@stellar/stellar-sdk";
 import {
   agentKeys,
   approvals,
@@ -14,15 +15,18 @@ import {
   oauthClients,
   oauthTokens,
   rateLimits,
+  sessions,
   users,
   wallets,
 } from "@stellabox/db";
 import { AgentKeyStore } from "@stellabox/signer";
+import { createApiApp } from "./app.js";
 import { PostgresOAuthProvider } from "./oauth.js";
 import { mapApiError } from "./api-errors.js";
 import { decideSpend, approvalExpiresAt } from "./policy.js";
 import { assertX402MaxAmount } from "./policy.js";
 import { resolveGrantContext } from "./mcp.js";
+import { serializeActivity, serializeApproval } from "./api-json.js";
 
 process.env.DATABASE_URL ??=
   "postgres://stellabox:stellabox@127.0.0.1:5433/stellabox";
@@ -122,6 +126,15 @@ afterAll(async () => {
 });
 
 describe("API error mapping and spend policy", () => {
+  it("serializes database bigints in approval and activity responses", () => {
+    expect(
+      JSON.stringify(serializeApproval({ amount: 1_250_000n }))
+    ).toBe('{"amount":"1250000"}');
+    expect(
+      JSON.stringify(serializeActivity({ id: 123n, amount: null }))
+    ).toBe('{"id":"123","amount":null}');
+  });
+
   it.each(["invalid_consent", "invalid_grant", "invalid_token"])(
     "maps %s to a client error",
     (message) => {
@@ -262,5 +275,64 @@ describe("Postgres OAuth provider", () => {
       .limit(1);
     expect(stored?.grantId).toBe(activeGrantId);
     expect(stored?.grantId).not.toBe(expiredGrantId);
+  });
+});
+
+describe("relay ownership", () => {
+  it("rejects a session relay request that does not involve its wallet", async () => {
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const signature = createHmac("sha256", process.env.SESSION_SECRET!)
+      .update(token)
+      .digest("base64url");
+    await db.insert(sessions).values({
+      userId,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+
+    const contractBytes = Buffer.alloc(32, 31);
+    const contractAddress = StrKey.encodeContract(contractBytes);
+    const func = xdr.HostFunction.hostFunctionTypeInvokeContract(
+      new xdr.InvokeContractArgs({
+        contractAddress: xdr.ScAddress.scAddressTypeContract(
+          contractBytes as unknown as Parameters<
+            typeof xdr.ScAddress.scAddressTypeContract
+          >[0]
+        ),
+        functionName: "unrelated",
+        args: [],
+      })
+    ).toXDR("base64");
+    const server = createApiApp(db).listen(0, "127.0.0.1");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("listening", resolve);
+        server.once("error", reject);
+      });
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("API test server did not bind to a TCP port");
+      }
+      const result = await fetch(`http://127.0.0.1:${address.port}/relay`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `stellabox_session=${encodeURIComponent(`${token}.${signature}`)}`,
+        },
+        body: JSON.stringify({ func, auth: [] }),
+      });
+      expect(result.status).toBe(403);
+      expect(await result.json()).toEqual({ error: "relay_not_owner" });
+      expect(contractAddress).not.toBe(
+        (await db.select().from(wallets).where(eq(wallets.id, walletId)).limit(1))[0]
+          ?.contractAddress
+      );
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+      await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+    }
   });
 });

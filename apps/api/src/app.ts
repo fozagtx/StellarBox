@@ -13,6 +13,7 @@ import {
   createChannelsClient,
   loadStellarConfig,
   submitSorobanTransaction,
+  submitXdrTransaction,
 } from "@stellabox/stellar";
 import { createAuthRouter, createSessionMiddleware } from "./auth.js";
 import { getLiveBalances, verifyRegisteredPasskey } from "./chain.js";
@@ -22,6 +23,8 @@ import { createApprovalRouter } from "./approvals.js";
 import { createOAuthRouter } from "./oauth.js";
 import { createMcpRouter } from "./mcp.js";
 import { mapApiError } from "./api-errors.js";
+import { relaySubmissionBelongsToWallet } from "./relay-authorization.js";
+import { serializeActivity } from "./api-json.js";
 
 function isWalletDeploy(func: string): boolean {
   try {
@@ -82,34 +85,66 @@ export function createApiApp(db: Database) {
   const classifyRelay: RequestHandler = (request, response, next) => {
     const func = request.body?.func;
     const auth = request.body?.auth;
-    if (typeof func !== "string" || !Array.isArray(auth) || auth.some((entry) => typeof entry !== "string")) {
+    const transactionXdr = request.body?.xdr;
+    const functionRequest =
+      typeof func === "string" &&
+      Array.isArray(auth) &&
+      auth.every((entry) => typeof entry === "string");
+    const xdrRequest = typeof transactionXdr === "string";
+    if (
+      functionRequest === xdrRequest ||
+      (xdrRequest && Object.keys(request.body ?? {}).length !== 1)
+    ) {
       response.status(400).json({ error: "invalid_relay_request" });
       return;
     }
-    if (isWalletDeploy(func)) {
+    if (functionRequest && isWalletDeploy(func)) {
       response.locals.walletDeploy = true;
       next();
       return;
     }
+    response.locals.relayXdr = xdrRequest;
     requireSession(request, response, next);
   };
   app.post("/relay", classifyRelay, async (request, response, next) => {
     try {
-      if (response.locals.walletDeploy) {
+      const walletDeploy = response.locals.walletDeploy === true;
+      const transactionXdr = request.body.xdr as string | undefined;
+      if (walletDeploy) {
         const ip = request.ip ?? request.socket.remoteAddress ?? "unknown";
         if (!(await consumeDeployRateLimit(db, ip))) {
           response.status(429).json({ error: "deployment_rate_limited" });
           return;
         }
+      } else {
+        const userId = response.locals.userId as string;
+        const wallet = await findWalletForUser(db, userId);
+        const submission = transactionXdr
+          ? { xdr: transactionXdr }
+          : {
+              func: request.body.func as string,
+              auth: request.body.auth as string[],
+            };
+        if (
+          !wallet ||
+          !relaySubmissionBelongsToWallet(submission, wallet.contractAddress)
+        ) {
+          response.status(403).json({ error: "relay_not_owner" });
+          return;
+        }
       }
-      const transaction = await submitSorobanTransaction(
-        {
-          func: request.body.func,
-          auth: request.body.auth,
-        },
-        createChannelsClient()
-      );
+      const channels = createChannelsClient();
+      const transaction = transactionXdr
+        ? await submitXdrTransaction({ xdr: transactionXdr }, channels)
+        : await submitSorobanTransaction(
+            {
+              func: request.body.func,
+              auth: request.body.auth,
+            },
+            channels
+          );
       response.json({
+        success: true,
         hash: transaction.hash,
         transactionId: transaction.transactionId,
         status: transaction.status,
@@ -192,7 +227,7 @@ export function createApiApp(db: Database) {
         db,
         response.locals.userId as string
       );
-      response.json(entries.map(({ entry }) => entry));
+      response.json(entries.map(({ entry }) => serializeActivity(entry)));
     } catch (error) {
       next(error);
     }
@@ -207,10 +242,14 @@ export function createApiApp(db: Database) {
     }
   });
 
-  app.use((error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
+  app.use((error: unknown, request: express.Request, response: express.Response, next: express.NextFunction) => {
     void next;
     const mapped = mapApiError(error);
-    response.status(mapped.status).json(mapped.body);
+    response.status(mapped.status).json(
+      request.path === "/relay"
+        ? { success: false, ...mapped.body }
+        : mapped.body
+    );
   });
 
   return app;

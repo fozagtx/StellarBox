@@ -1,5 +1,5 @@
 import { Router, type RequestHandler } from "express";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import webPush from "web-push";
 import type { Database } from "@stellabox/db";
 import {
@@ -22,6 +22,7 @@ import {
 } from "./chain.js";
 import { verifyPasskeyAssertion } from "./auth.js";
 import { executeX402Approval, prepareX402Approval } from "./x402-client.js";
+import { serializeApproval } from "./api-json.js";
 
 export async function notifyApproval(
   db: Database,
@@ -80,6 +81,15 @@ export function createApprovalRouter(
 ) {
   const router = Router();
 
+  router.get("/push/vapid-public-key", (_request, response) => {
+    const publicKey = loadApiConfig().vapidPublicKey;
+    if (!publicKey) {
+      response.status(503).json({ error: "push_not_configured" });
+      return;
+    }
+    response.json({ publicKey });
+  });
+
   router.post("/push/subscribe", requireSession, async (request, response, next) => {
     try {
       const endpoint = String(request.body?.endpoint ?? "");
@@ -102,6 +112,43 @@ export function createApprovalRouter(
       next(error);
     }
   });
+
+  router.get("/approvals", requireSession, async (_request, response, next) => {
+    try {
+      const rows = await db
+        .select({ approval: approvals })
+        .from(approvals)
+        .innerJoin(grants, eq(grants.id, approvals.grantId))
+        .innerJoin(wallets, eq(wallets.id, grants.walletId))
+        .where(eq(wallets.userId, response.locals.userId as string))
+        .orderBy(desc(approvals.createdAt))
+        .limit(100);
+      response.json(rows.map(({ approval }) => serializeApproval(approval)));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get(
+    "/approvals/:id",
+    requireSession,
+    async (request, response, next) => {
+      try {
+        const approval = await getApprovalForUser(
+          db,
+          String(request.params.id),
+          response.locals.userId as string
+        );
+        if (!approval) {
+          response.status(404).json({ error: "approval_not_found" });
+          return;
+        }
+        response.json(serializeApproval(approval));
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
 
   router.get(
     "/approvals/:id/sign-params",

@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "startedAt": "2026-10-17T02:06:46.395Z",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "webUrl": "http://localhost:3000",
+  "apiUrl": "http://localhost:4000",
+  "completedAt": "2026-10-17T02:07:19.479Z",
+  "wallet": {
+    "contractId": "CBTRJ2BGFOXHFCS5KD7QZG25O33TCN47SEJV6XCRWIM2XJQFCJHJ23EB",
+    "walletId": "b20e013c-f436-4f37-bee8-f492a6fb0861",
+    "deploymentTxHash": "ce59699212e4ce0aea3086dbbd28376dd43f14015bf5259901db23257faf73e9",
+    "registered": true,
+    "onChainContextRuleCount": 1,
+    "ownerRuleSignerCount": 1,
+    "virtualAuthenticatorCredentialCount": 1,
+    "sessionAuthenticated": true
+  },
+  "grant": {
+    "grantId": "f3aabba9-2f08-46d0-99ad-773f1f48630b",
+    "status": "active",
+    "contextRuleId": 1,
+    "transactionHash": "684b7aa608a97c4a75a582a0d55f660a8a7678a788f8f6d022ebb81c74f69782",
+    "onChainContextRuleCount": 2,
+    "liveBudget": {
+      "spendingLimit": "30000000",
+      "spentInWindow": "0",
+      "remaining": "30000000",
+      "txMax": "10000000",
+      "periodLedgers": 17280
+    }
+  },
+  "relayer": {
+    "responses": [
+      {
+        "status": 200,
+        "success": true,
+        "hash": "ce59699212e4ce0aea3086dbbd28376dd43f14015bf5259901db23257faf73e9"
+      },
+      {
+        "status": 200,
+        "success": true,
+        "hash": "684b7aa608a97c4a75a582a0d55f660a8a7678a788f8f6d022ebb81c74f69782"
+      }
+    ],
+    "protocolSuccessResponses": 2
+  }
+}
