@@ -3,5 +3,7 @@ node_modules
 !.env.example
 target/
 .next/
+*.tsbuildinfo
 dist/
 .deploy/
+*.tsbuildinfo

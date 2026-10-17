@@ -1,0 +1,30 @@
+{
+  "name": "@stellabox/stellar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
+    "prove:testnet": "node --env-file=../../.env --import tsx ../../scripts/prove-caps.ts"
+  },
+  "dependencies": {
+    "@openzeppelin/relayer-plugin-channels": "0.21.0",
+    "@stellar/stellar-sdk": "16.3.1",
+    "@x402/stellar": "2.28.0",
+    "smart-account-kit": "0.8.0",
+    "smart-account-kit-bindings": "0.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "vitest": "^3.1.2"
+  }
+}

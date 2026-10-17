@@ -1,0 +1,437 @@
+{
+  "status": "passed",
+  "startedAt": "2026-10-17T02:39:42.226Z",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "webUrl": "http://localhost:3000",
+  "apiUrl": "http://localhost:4000",
+  "network": "testnet",
+  "steps": [
+    {
+      "step": "create_wallet_with_passkey",
+      "status": "passed",
+      "contractId": "CA2YOPT5ZOYUURPJKVCAZK3ISEO5377YQYFC7G5IFRVXRENR6BHLTV36",
+      "walletId": "f0895248-13f2-4c71-8e41-56cc0ad62f68",
+      "registered": true,
+      "onChainContextRuleCount": 1,
+      "ownerRuleSignerCount": 1,
+      "virtualAuthenticatorCredentialCount": 1,
+      "sessionAuthenticated": true,
+      "reusedExistingTab": true
+    },
+    {
+      "step": "fund_wallet_with_testnet_usdc",
+      "status": "passed",
+      "amountUsdc": "3",
+      "source": "GBHLUHQOF524MU4QHVCL65BYPMPXWGSQVMDCOZOAIL3D55MQEVCEUEFD",
+      "pathPaymentHash": "63372967d40387aa3903f9695706fa575706f8bd5d23c00201523693251aabc8",
+      "sacTransferHash": "58cd2f21b0b8fc84f2979ab2c2411a14fb47a654950f274002d04c886558e02b",
+      "walletUsdcStroops": "30000000"
+    },
+    {
+      "step": "create_grant_with_passkey",
+      "status": "active",
+      "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+      "contextRuleId": 1,
+      "dailyCapStroops": "50000000",
+      "txCapStroops": "10000000",
+      "validityDays": 7,
+      "onChainContextRuleCount": 2,
+      "liveBudget": {
+        "spendingLimit": "50000000",
+        "spentInWindow": "0",
+        "remaining": "50000000",
+        "txMax": "10000000",
+        "periodLedgers": 17280
+      }
+    },
+    {
+      "step": "oauth_dcr_pkce_consent_token",
+      "status": "passed",
+      "clientName": "StellaBox Web E2E",
+      "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+      "scope": "stellabox",
+      "accessTokenExpiresInSeconds": 900,
+      "pkceMethod": "S256"
+    },
+    {
+      "step": "mcp_get_balance",
+      "status": "passed",
+      "response": {
+        "balances": {
+          "usdcStroops": "30000000",
+          "xlmStroops": "0"
+        },
+        "remaining_budget_stroops": "50000000",
+        "tx_cap_stroops": "10000000"
+      }
+    },
+    {
+      "step": "mcp_list_grants",
+      "status": "passed",
+      "response": {
+        "grants": [
+          {
+            "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+            "name": "Styled E2E grant",
+            "client": "StellaBox Web E2E",
+            "daily_cap_stroops": "50000000",
+            "tx_cap_stroops": "10000000",
+            "assets": [
+              "USDC"
+            ],
+            "expires_at": "2026-10-24T02:40:51.474Z"
+          }
+        ]
+      }
+    },
+    {
+      "step": "mcp_send_payment_0_5_usdc",
+      "status": "passed",
+      "recipient": "GDICPDB4L2PVQFVLEG4CAR3XUQWS5OTRBQBOMQUYUVQDTKZ34IKETXAK",
+      "transactionHash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+      "response": {
+        "tx_hash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+        "remaining_budget_stroops": "45000000",
+        "status": "confirmed"
+      }
+    },
+    {
+      "step": "mcp_pay_x402_search",
+      "status": "passed",
+      "url": "http://localhost:4100/search?q=Stella",
+      "transactionHash": "dabcf829d476db62018f68c603a906494e8bd0ef648ba0545b5271d94cfb180e",
+      "responseBody": {
+        "batchcomplete": "",
+        "continue": {
+          "sroffset": 10,
+          "continue": "-||"
+        },
+        "query": {
+          "searchinfo": {
+            "totalhits": 34984
+          },
+          "search": [
+            {
+              "ns": 0,
+              "title": "Stella",
+              "pageid": 444168,
+              "size": 6987,
+              "wordcount": 835,
+              "snippet": "Look up <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">stella</span> in Wiktionary, the free dictionary. <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">STELLA</span> may refer to: <span class=\"searchmatch\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\"searchmatch\">Stella</span> (1943",
+              "timestamp": "2026-04-09T15:14:06Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Lefty",
+              "pageid": 83239960,
+              "size": 46924,
+              "wordcount": 3216,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\"searchmatch\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;",
+              "timestamp": "2026-10-16T23:49:13Z"
+            },
+            {
+              "ns": 0,
+              "title": "Lennon Stella",
+              "pageid": 59004930,
+              "size": 37206,
+              "wordcount": 2074,
+              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going",
+              "timestamp": "2026-10-12T06:37:14Z"
+            },
+            {
+              "ns": 0,
+              "title": "Maisy Stella",
+              "pageid": 37437004,
+              "size": 15768,
+              "wordcount": 1018,
+              "snippet": "MaryLynne and Brad <span class=\"searchmatch\">Stella</span>, who are members of the country duo the <span class=\"searchmatch\">Stellas</span>, and she has an older sister, Lennon <span class=\"searchmatch\">Stella</span>. <span class=\"searchmatch\">Stella</span> is queer. <span class=\"searchmatch\">Stella</span> had her breakthrough",
+              "timestamp": "2026-08-26T01:02:55Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella McCartney",
+              "pageid": 860648,
+              "size": 36236,
+              "wordcount": 3067,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer",
+              "timestamp": "2026-07-20T21:57:34Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Artois",
+              "pageid": 28486,
+              "size": 25747,
+              "wordcount": 2393,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
+              "timestamp": "2026-09-21T20:16:17Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Parton",
+              "pageid": 2577538,
+              "size": 15028,
+              "wordcount": 1658,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
+              "timestamp": "2026-09-21T21:34:04Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Tennant",
+              "pageid": 5773829,
+              "size": 16250,
+              "wordcount": 1300,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned",
+              "timestamp": "2026-10-05T16:26:12Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Assange",
+              "pageid": 72035757,
+              "size": 8751,
+              "wordcount": 697,
+              "snippet": "Julian Assange. She changed her name to <span class=\"searchmatch\">Stella</span> Moris in 2012 and later to <span class=\"searchmatch\">Stella</span> Moris-Smith Robertson. <span class=\"searchmatch\">Stella</span> Assange was born Sara González Devant in",
+              "timestamp": "2026-09-24T14:44:40Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella by Starlight",
+              "pageid": 18188826,
+              "size": 5928,
+              "wordcount": 622,
+              "snippet": "&quot;<span class=\"searchmatch\">Stella</span> by Starlight&quot; is a popular jazz standard with music by Victor Young that was drawn from thematic material composed for the main title and soundtrack",
+              "timestamp": "2026-08-18T21:45:05Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": "mcp_over_tx_cap_pending_approval",
+      "status": "pending",
+      "requestedAmount": "2",
+      "errorCode": "over_tx_cap",
+      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d"
+    },
+    {
+      "step": "browser_approve_with_passkey",
+      "status": "executed",
+      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
+      "transactionHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+    },
+    {
+      "step": "mcp_second_over_tx_cap_pending_approval",
+      "status": "pending",
+      "requestedAmount": "2",
+      "errorCode": "over_tx_cap",
+      "approvalId": "3f9d5e29-cd0d-4c78-ac38-1cc0a6f92235",
+      "leftPending": true
+    }
+  ],
+  "completedAt": "2026-10-17T02:42:18.815Z",
+  "wallet": {
+    "contractId": "CA2YOPT5ZOYUURPJKVCAZK3ISEO5377YQYFC7G5IFRVXRENR6BHLTV36",
+    "walletId": "f0895248-13f2-4c71-8e41-56cc0ad62f68",
+    "deploymentTxHash": "853ee06ecf48fe168aa8e389df717e01283ccc710fc86ea85cc6d5be9d867af7",
+    "registered": true,
+    "onChainContextRuleCount": 1,
+    "ownerRuleSignerCount": 1,
+    "virtualAuthenticatorCredentialCount": 1,
+    "sessionAuthenticated": true,
+    "funding": {
+      "amountUsdc": "3",
+      "source": "GBHLUHQOF524MU4QHVCL65BYPMPXWGSQVMDCOZOAIL3D55MQEVCEUEFD",
+      "pathPaymentHash": "63372967d40387aa3903f9695706fa575706f8bd5d23c00201523693251aabc8",
+      "sacTransferHash": "58cd2f21b0b8fc84f2979ab2c2411a14fb47a654950f274002d04c886558e02b",
+      "balanceAfterFundingStroops": "30000000"
+    }
+  },
+  "grant": {
+    "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+    "status": "active",
+    "contextRuleId": 1,
+    "transactionHash": "d2172441295a26d80cbe73b70eb8c5f869210bf659617b5a6a3278590c328e25",
+    "onChainContextRuleCount": 2,
+    "liveBudget": {
+      "spendingLimit": "50000000",
+      "spentInWindow": "0",
+      "remaining": "50000000",
+      "txMax": "10000000",
+      "periodLedgers": 17280
+    },
+    "expiresAt": "2026-10-24T02:40:51.474Z"
+  },
+  "oauth": {
+    "clientName": "StellaBox Web E2E",
+    "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+    "pkceMethod": "S256",
+    "consentUiUsed": true
+  },
+  "payments": {
+    "sendPayment": {
+      "step": "mcp_send_payment_0_5_usdc",
+      "status": "passed",
+      "recipient": "GDICPDB4L2PVQFVLEG4CAR3XUQWS5OTRBQBOMQUYUVQDTKZ34IKETXAK",
+      "transactionHash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+      "response": {
+        "tx_hash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+        "remaining_budget_stroops": "45000000",
+        "status": "confirmed"
+      }
+    },
+    "payX402": {
+      "step": "mcp_pay_x402_search",
+      "status": "passed",
+      "url": "http://localhost:4100/search?q=Stella",
+      "transactionHash": "dabcf829d476db62018f68c603a906494e8bd0ef648ba0545b5271d94cfb180e",
+      "responseBody": {
+        "batchcomplete": "",
+        "continue": {
+          "sroffset": 10,
+          "continue": "-||"
+        },
+        "query": {
+          "searchinfo": {
+            "totalhits": 34984
+          },
+          "search": [
+            {
+              "ns": 0,
+              "title": "Stella",
+              "pageid": 444168,
+              "size": 6987,
+              "wordcount": 835,
+              "snippet": "Look up <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">stella</span> in Wiktionary, the free dictionary. <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">STELLA</span> may refer to: <span class=\"searchmatch\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\"searchmatch\">Stella</span> (1943",
+              "timestamp": "2026-04-09T15:14:06Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Lefty",
+              "pageid": 83239960,
+              "size": 46924,
+              "wordcount": 3216,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\"searchmatch\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;",
+              "timestamp": "2026-10-16T23:49:13Z"
+            },
+            {
+              "ns": 0,
+              "title": "Lennon Stella",
+              "pageid": 59004930,
+              "size": 37206,
+              "wordcount": 2074,
+              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going",
+              "timestamp": "2026-10-12T06:37:14Z"
+            },
+            {
+              "ns": 0,
+              "title": "Maisy Stella",
+              "pageid": 37437004,
+              "size": 15768,
+              "wordcount": 1018,
+              "snippet": "MaryLynne and Brad <span class=\"searchmatch\">Stella</span>, who are members of the country duo the <span class=\"searchmatch\">Stellas</span>, and she has an older sister, Lennon <span class=\"searchmatch\">Stella</span>. <span class=\"searchmatch\">Stella</span> is queer. <span class=\"searchmatch\">Stella</span> had her breakthrough",
+              "timestamp": "2026-08-26T01:02:55Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella McCartney",
+              "pageid": 860648,
+              "size": 36236,
+              "wordcount": 3067,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer",
+              "timestamp": "2026-07-20T21:57:34Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Artois",
+              "pageid": 28486,
+              "size": 25747,
+              "wordcount": 2393,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
+              "timestamp": "2026-09-21T20:16:17Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Parton",
+              "pageid": 2577538,
+              "size": 15028,
+              "wordcount": 1658,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
+              "timestamp": "2026-09-21T21:34:04Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Tennant",
+              "pageid": 5773829,
+              "size": 16250,
+              "wordcount": 1300,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned",
+              "timestamp": "2026-10-05T16:26:12Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Assange",
+              "pageid": 72035757,
+              "size": 8751,
+              "wordcount": 697,
+              "snippet": "Julian Assange. She changed her name to <span class=\"searchmatch\">Stella</span> Moris in 2012 and later to <span class=\"searchmatch\">Stella</span> Moris-Smith Robertson. <span class=\"searchmatch\">Stella</span> Assange was born Sara González Devant in",
+              "timestamp": "2026-09-24T14:44:40Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella by Starlight",
+              "pageid": 18188826,
+              "size": 5928,
+              "wordcount": 622,
+              "snippet": "&quot;<span class=\"searchmatch\">Stella</span> by Starlight&quot; is a popular jazz standard with music by Victor Young that was drawn from thematic material composed for the main title and soundtrack",
+              "timestamp": "2026-08-18T21:45:05Z"
+            }
+          ]
+        }
+      }
+    },
+    "approvedOverCap": {
+      "step": "browser_approve_with_passkey",
+      "status": "executed",
+      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
+      "transactionHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+    }
+  },
+  "approvals": {
+    "executed": {
+      "id": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
+      "status": "executed",
+      "txHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+    },
+    "pending": {
+      "id": "3f9d5e29-cd0d-4c78-ac38-1cc0a6f92235",
+      "status": "pending"
+    }
+  },
+  "relayer": {
+    "responses": [
+      {
+        "status": 200,
+        "success": true,
+        "hash": "853ee06ecf48fe168aa8e389df717e01283ccc710fc86ea85cc6d5be9d867af7"
+      },
+      {
+        "status": 200,
+        "success": true,
+        "hash": "d2172441295a26d80cbe73b70eb8c5f869210bf659617b5a6a3278590c328e25"
+      },
+      {
+        "status": 200,
+        "success": true,
+        "hash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+      }
+    ],
+    "protocolSuccessResponses": 3
+  },
+  "finalBrowser": {
+    "url": "http://localhost:3000/app",
+    "sessionAuthenticated": true,
+    "virtualAuthenticatorCredentialCount": 1,
+    "authenticatorRemoved": false,
+    "pendingApprovalVisibleOnDashboard": true,
+    "tabReused": true
+  }
+}
