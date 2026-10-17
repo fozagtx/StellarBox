@@ -3,7 +3,7 @@ import {
   computeEntryAuthDigest,
   signerToScVal,
 } from "smart-account-kit";
-import { xdr } from "@stellar/stellar-sdk";
+import { hash, xdr } from "@stellar/stellar-sdk";
 import type { Signer as ContractSigner } from "smart-account-kit-bindings";
 
 function mapEntry(key: xdr.ScVal, val: xdr.ScVal): xdr.ScMapEntry {
@@ -98,4 +98,17 @@ export async function signAgentAuthEntryWithKeyStore(input: {
   addressCredentials.signatureExpirationLedger(input.expirationLedger);
   addressCredentials.signature(signaturePayload);
   return input.entry;
+}
+
+export async function signAgentAuthPreimage(input: {
+  preimage: string;
+  contextRuleIds: number[];
+  signDigest: (digest: Buffer) => Promise<Uint8Array>;
+}): Promise<Uint8Array> {
+  const signaturePayload = hash(Buffer.from(input.preimage, "base64"));
+  const ruleIds = xdr.ScVal.scvVec(
+    input.contextRuleIds.map((contextRuleId) => xdr.ScVal.scvU32(contextRuleId))
+  ).toXDR();
+  const authDigest = hash(Buffer.concat([signaturePayload, ruleIds]));
+  return input.signDigest(authDigest);
 }

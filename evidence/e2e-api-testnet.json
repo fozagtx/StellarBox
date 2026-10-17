@@ -1,0 +1,106 @@
+{
+  "network": "testnet",
+  "createdAt": "2026-10-17T01:42:42.967Z",
+  "account": "CB4YN4AQQSKNBZT7FFQ2JYLWYZ4GWCBRDMOQYTEULRFF7ZLF3FHLMC6P",
+  "owner": "GB6BVNNPOXQKRNXRQOA3FLTK7LR6G4AP7HG4MQLPEIBBSUHUT2MTTIKU",
+  "grantId": "ba0a3afe-899f-4d55-8f99-129194a5dc81",
+  "transactions": {
+    "deployment": "5c4f65bed23616f9b3e826e2edf602077377087e5631bfedb5f88f69d93426f1",
+    "funding": "730ea29dd0dd6b95350cf3e03bd61e482ee1da0e0b5b51763486bde9c51231bc",
+    "addRule": "f1c3157ae07b6e77fa3d073bcaf408a8e2a2ed1a577e28b62dbc2f538d72d51c",
+    "removeRule": "9565c82db78394c180c395eafee54a17f7de2829f25ea17fcac5ef67abd2369f"
+  },
+  "facilitator": {
+    "path": "in-process @x402/stellar ExactStellarScheme",
+    "feeKey": "GCC3NFEWDV6US6YZOHCGBSUF4ZXIBKPV3OFWHRR3ENQRKVIX7GBWBUWQ",
+    "maxTransactionFeeStroops": 2000000,
+    "maxTransactionFeeXlm": "0.2",
+    "feeCeilingRationale": "Smart-account __check_auth runs the verifier and both spending policies, increasing Soroban resource fees.",
+    "eventValidation": "Ignores non-transfer contract events from auth and policy execution; still requires one matching USDC transfer.",
+    "publicTrial": {
+      "url": "https://x402.org/facilitator",
+      "status": 402,
+      "result": "rejected",
+      "error": "invalid_exact_stellar_payload_fee_exceeds_maximum",
+      "interpretation": "fee ceiling rejection, not a C-address payer rejection",
+      "observedDuringPriorTestnetTrial": true
+    }
+  },
+  "steps": [
+    {
+      "step": "fund_paid_api_facilitator",
+      "result": "\"friendbot-funded\"",
+      "detail": "GCC3NFEWDV6US6YZOHCGBSUF4ZXIBKPV3OFWHRR3ENQRKVIX7GBWBUWQ"
+    },
+    {
+      "step": "paid_api_facilitator_active",
+      "result": "\"in-process @x402/stellar ExactStellarScheme\"",
+      "detail": "max_transaction_fee_stroops=2000000"
+    },
+    {
+      "step": "deploy_smart_account",
+      "result": "\"5c4f65bed23616f9b3e826e2edf602077377087e5631bfedb5f88f69d93426f1\"",
+      "detail": "CB4YN4AQQSKNBZT7FFQ2JYLWYZ4GWCBRDMOQYTEULRFF7ZLF3FHLMC6P"
+    },
+    {
+      "step": "fund_smart_account",
+      "result": "\"730ea29dd0dd6b95350cf3e03bd61e482ee1da0e0b5b51763486bde9c51231bc\"",
+      "detail": "6f34dc32ef77392fb48f513bf8bfe4f979b34943fb7e75882c052201f5315aa7"
+    },
+    {
+      "step": "seed_wallet_and_session",
+      "result": "\"42f1a807-23b5-419a-926d-adc09f62e6cf\"",
+      "detail": "{\"walletId\":\"42f1a807-23b5-419a-926d-adc09f62e6cf\",\"contractId\":\"CB4YN4AQQSKNBZT7FFQ2JYLWYZ4GWCBRDMOQYTEULRFF7ZLF3FHLMC6P\",\"depositAddress\":\"CB4YN4AQQSKNBZT7FFQ2JYLWYZ4GWCBRDMOQYTEULRFF7ZLF3FHLMC6P\",\"balances\":{\"usdcStroops\":\"70000000\",\"xlmStroops\":\"0\"}}"
+    },
+    {
+      "step": "create_pending_grant",
+      "result": "\"ba0a3afe-899f-4d55-8f99-129194a5dc81\""
+    },
+    {
+      "step": "add_and_confirm_onchain_grant",
+      "result": "\"f1c3157ae07b6e77fa3d073bcaf408a8e2a2ed1a577e28b62dbc2f538d72d51c\"",
+      "detail": "1"
+    },
+    {
+      "step": "oauth_code_challenge_lookup",
+      "result": "\"matched\""
+    },
+    {
+      "step": "oauth_dcr_pkce_consent_token",
+      "result": "\"issued\""
+    },
+    {
+      "step": "get_balance",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"balances\\\":{\\\"usdcStroops\\\":\\\"70000000\\\",\\\"xlmStroops\\\":\\\"0\\\"},\\\"remaining_budget_stroops\\\":\\\"30000000\\\",\\\"tx_cap_stroops\\\":\\\"10000000\\\"}\"}],\"structuredContent\":{\"balances\":{\"usdcStroops\":\"70000000\",\"xlmStroops\":\"0\"},\"remaining_budget_stroops\":\"30000000\",\"tx_cap_stroops\":\"10000000\"}}"
+    },
+    {
+      "step": "list_grants",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"grants\\\":[{\\\"grantId\\\":\\\"ba0a3afe-899f-4d55-8f99-129194a5dc81\\\",\\\"name\\\":\\\"Phase 2 E2E grant\\\",\\\"client\\\":\\\"e2e-mcp-client\\\",\\\"daily_cap_stroops\\\":\\\"30000000\\\",\\\"tx_cap_stroops\\\":\\\"10000000\\\",\\\"assets\\\":[\\\"USDC\\\"],\\\"expires_at\\\":\\\"2026-10-18T01:41:47.680Z\\\"}]}\"}],\"structuredContent\":{\"grants\":[{\"grantId\":\"ba0a3afe-899f-4d55-8f99-129194a5dc81\",\"name\":\"Phase 2 E2E grant\",\"client\":\"e2e-mcp-client\",\"daily_cap_stroops\":\"30000000\",\"tx_cap_stroops\":\"10000000\",\"assets\":[\"USDC\"],\"expires_at\":\"2026-10-18T01:41:47.680Z\"}]}}"
+    },
+    {
+      "step": "send_payment_0_5_usdc",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"tx_hash\\\":\\\"cef2289aa0cf06dc90a0216a6543cd80805d678a47afffa4d593b05045e19dde\\\",\\\"remaining_budget_stroops\\\":\\\"25000000\\\",\\\"status\\\":\\\"confirmed\\\"}\"}],\"structuredContent\":{\"tx_hash\":\"cef2289aa0cf06dc90a0216a6543cd80805d678a47afffa4d593b05045e19dde\",\"remaining_budget_stroops\":\"25000000\",\"status\":\"confirmed\"}}"
+    },
+    {
+      "step": "pay_x402_wikipedia",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"body\\\":{\\\"batchcomplete\\\":\\\"\\\",\\\"continue\\\":{\\\"sroffset\\\":10,\\\"continue\\\":\\\"-||\\\"},\\\"query\\\":{\\\"searchinfo\\\":{\\\"totalhits\\\":34984},\\\"search\\\":[{\\\"ns\\\":0,\\\"title\\\":\\\"Stella\\\",\\\"pageid\\\":444168,\\\"size\\\":6987,\\\"wordcount\\\":835,\\\"snippet\\\":\\\"Look up <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> or <span class=\\\\\\\"searchmatch\\\\\\\">stella</span> in Wiktionary, the free dictionary. <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> or <span class=\\\\\\\"searchmatch\\\\\\\">STELLA</span> may refer to: <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> (1943\\\",\\\"timestamp\\\":\\\"2026-04-09T15:14:06Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Lefty\\\",\\\"pageid\\\":83239960,\\\"size\\\":46924,\\\"wordcount\\\":3216,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;\\\",\\\"timestamp\\\":\\\"2026-10-16T23:49:13Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Lennon Stella\\\",\\\"pageid\\\":59004930,\\\"size\\\":37206,\\\"wordcount\\\":2074,\\\"snippet\\\":\\\"Lennon Ray Louise <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going\\\",\\\"timestamp\\\":\\\"2026-10-12T06:37:14Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Maisy Stella\\\",\\\"pageid\\\":37437004,\\\"size\\\":15768,\\\"wordcount\\\":1018,\\\"snippet\\\":\\\"MaryLynne and Brad <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span>, who are members of the country duo the <span class=\\\\\\\"searchmatch\\\\\\\">Stellas</span>, and she has an older sister, Lennon <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span>. <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> is queer. <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> had her breakthrough\\\",\\\"timestamp\\\":\\\"2026-08-26T01:02:55Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella McCartney\\\",\\\"pageid\\\":860648,\\\"size\\\":36236,\\\"wordcount\\\":3067,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer\\\",\\\"timestamp\\\":\\\"2026-07-20T21:57:34Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Parton\\\",\\\"pageid\\\":2577538,\\\"size\\\":15028,\\\"wordcount\\\":1658,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the\\\",\\\"timestamp\\\":\\\"2026-09-21T21:34:04Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Artois\\\",\\\"pageid\\\":28486,\\\"size\\\":25747,\\\"wordcount\\\":2393,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form\\\",\\\"timestamp\\\":\\\"2026-09-21T20:16:17Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Tennant\\\",\\\"pageid\\\":5773829,\\\"size\\\":16250,\\\"wordcount\\\":1300,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned\\\",\\\"timestamp\\\":\\\"2026-10-05T16:26:12Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Assange\\\",\\\"pageid\\\":72035757,\\\"size\\\":8751,\\\"wordcount\\\":697,\\\"snippet\\\":\\\"Julian Assange. She changed her name to <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Moris in 2012 and later to <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Moris-Smith Robertson. <span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Assange was born Sara González Devant in\\\",\\\"timestamp\\\":\\\"2026-09-24T14:44:40Z\\\"},{\\\"ns\\\":0,\\\"title\\\":\\\"Stella Maxwell\\\",\\\"pageid\\\":44447394,\\\"size\\\":13423,\\\"wordcount\\\":1041,\\\"snippet\\\":\\\"<span class=\\\\\\\"searchmatch\\\\\\\">Stella</span> Maynes Maxwell (born 15 May 1990) is a Belgian-born Northern Irish-New Zealand model. A former Victoria&#039;s Secret Angel, she was also the face of\\\",\\\"timestamp\\\":\\\"2026-10-07T04:48:18Z\\\"}]}},\\\"tx_hash\\\":\\\"4230b3f2fc4facd53289b456d5160872bea54f2958c58e50c9826578eb8d09d9\\\",\\\"status\\\":200,\\\"remaining_budget_stroops\\\":\\\"24900000\\\"}\"}],\"structuredContent\":{\"body\":{\"batchcomplete\":\"\",\"continue\":{\"sroffset\":10,\"continue\":\"-||\"},\"query\":{\"searchinfo\":{\"totalhits\":34984},\"search\":[{\"ns\":0,\"title\":\"Stella\",\"pageid\":444168,\"size\":6987,\"wordcount\":835,\"snippet\":\"Look up <span class=\\\"searchmatch\\\">Stella</span> or <span class=\\\"searchmatch\\\">stella</span> in Wiktionary, the free dictionary. <span class=\\\"searchmatch\\\">Stella</span> or <span class=\\\"searchmatch\\\">STELLA</span> may refer to: <span class=\\\"searchmatch\\\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\\\"searchmatch\\\">Stella</span> (1943\",\"timestamp\":\"2026-04-09T15:14:06Z\"},{\"ns\":0,\"title\":\"Stella Lefty\",\"pageid\":83239960,\"size\":46924,\"wordcount\":3216,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\\\"searchmatch\\\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;\",\"timestamp\":\"2026-10-16T23:49:13Z\"},{\"ns\":0,\"title\":\"Lennon Stella\",\"pageid\":59004930,\"size\":37206,\"wordcount\":2074,\"snippet\":\"Lennon Ray Louise <span class=\\\"searchmatch\\\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going\",\"timestamp\":\"2026-10-12T06:37:14Z\"},{\"ns\":0,\"title\":\"Maisy Stella\",\"pageid\":37437004,\"size\":15768,\"wordcount\":1018,\"snippet\":\"MaryLynne and Brad <span class=\\\"searchmatch\\\">Stella</span>, who are members of the country duo the <span class=\\\"searchmatch\\\">Stellas</span>, and she has an older sister, Lennon <span class=\\\"searchmatch\\\">Stella</span>. <span class=\\\"searchmatch\\\">Stella</span> is queer. <span class=\\\"searchmatch\\\">Stella</span> had her breakthrough\",\"timestamp\":\"2026-08-26T01:02:55Z\"},{\"ns\":0,\"title\":\"Stella McCartney\",\"pageid\":860648,\"size\":36236,\"wordcount\":3067,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer\",\"timestamp\":\"2026-07-20T21:57:34Z\"},{\"ns\":0,\"title\":\"Stella Parton\",\"pageid\":2577538,\"size\":15028,\"wordcount\":1658,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the\",\"timestamp\":\"2026-09-21T21:34:04Z\"},{\"ns\":0,\"title\":\"Stella Artois\",\"pageid\":28486,\"size\":25747,\"wordcount\":2393,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form\",\"timestamp\":\"2026-09-21T20:16:17Z\"},{\"ns\":0,\"title\":\"Stella Tennant\",\"pageid\":5773829,\"size\":16250,\"wordcount\":1300,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned\",\"timestamp\":\"2026-10-05T16:26:12Z\"},{\"ns\":0,\"title\":\"Stella Assange\",\"pageid\":72035757,\"size\":8751,\"wordcount\":697,\"snippet\":\"Julian Assange. She changed her name to <span class=\\\"searchmatch\\\">Stella</span> Moris in 2012 and later to <span class=\\\"searchmatch\\\">Stella</span> Moris-Smith Robertson. <span class=\\\"searchmatch\\\">Stella</span> Assange was born Sara González Devant in\",\"timestamp\":\"2026-09-24T14:44:40Z\"},{\"ns\":0,\"title\":\"Stella Maxwell\",\"pageid\":44447394,\"size\":13423,\"wordcount\":1041,\"snippet\":\"<span class=\\\"searchmatch\\\">Stella</span> Maynes Maxwell (born 15 May 1990) is a Belgian-born Northern Irish-New Zealand model. A former Victoria&#039;s Secret Angel, she was also the face of\",\"timestamp\":\"2026-10-07T04:48:18Z\"}]}},\"tx_hash\":\"4230b3f2fc4facd53289b456d5160872bea54f2958c58e50c9826578eb8d09d9\",\"status\":200,\"remaining_budget_stroops\":\"24900000\"}}"
+    },
+    {
+      "step": "over_tx_cap_approval",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"code\\\":\\\"over_tx_cap\\\",\\\"approval_id\\\":\\\"1e24fca5-4941-4670-8caf-c988aba47c37\\\"}\"}],\"structuredContent\":{\"code\":\"over_tx_cap\",\"approval_id\":\"1e24fca5-4941-4670-8caf-c988aba47c37\"},\"isError\":true}"
+    },
+    {
+      "step": "get_approval",
+      "result": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"approval_id\\\":\\\"1e24fca5-4941-4670-8caf-c988aba47c37\\\",\\\"status\\\":\\\"pending\\\",\\\"tx_hash\\\":null,\\\"result_body\\\":null}\"}],\"structuredContent\":{\"approval_id\":\"1e24fca5-4941-4670-8caf-c988aba47c37\",\"status\":\"pending\",\"tx_hash\":null,\"result_body\":null}}"
+    },
+    {
+      "step": "revoke_grant_onchain",
+      "result": "\"9565c82db78394c180c395eafee54a17f7de2829f25ea17fcac5ef67abd2369f\""
+    },
+    {
+      "step": "post_revoke_mcp_call",
+      "result": "\"grant_revoked\"",
+      "detail": "Error: Streamable HTTP error: Error POSTing to endpoint: {\"error\":\"invalid_token\",\"error_description\":\"grant_revoked\"}"
+    }
+  ]
+}

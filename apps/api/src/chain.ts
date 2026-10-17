@@ -103,14 +103,11 @@ export async function findAgentContextRule(input: {
       continue;
     }
     const typeParts = contextType.vec() ?? [];
-    const typeValues = typeParts[1]?.switch().name === "scvVec"
-      ? typeParts[1].vec() ?? []
-      : [];
     const isUsdcCall =
       typeParts[0]?.switch().name === "scvSymbol" &&
       typeParts[0].sym().toString() === "CallContract" &&
-      typeValues[0]?.switch().name === "scvAddress" &&
-      Address.fromScAddress(typeValues[0].address()).toString() === config.usdcSac;
+      typeParts[1]?.switch().name === "scvAddress" &&
+      Address.fromScAddress(typeParts[1].address()).toString() === config.usdcSac;
     const validUntilNumber = Number(scValToNative(validUntil));
     const hasSigner = (signers.vec() ?? []).some((signer) => {
       const values = externalSignerParts(signer);
@@ -203,13 +200,15 @@ export async function verifyUsdcTransfer(
 function externalSignerParts(value: xdr.ScVal): xdr.ScVal[] | undefined {
   if (value.switch().name !== "scvVec") return undefined;
   const outer = value.vec() ?? [];
-  if (outer.length !== 2 || outer[0]?.switch().name !== "scvSymbol") {
+  if (outer[0]?.switch().name !== "scvSymbol" ||
+      outer[0].sym().toString() !== "External") {
     return undefined;
   }
-  if (outer[0].sym().toString() !== "External" || outer[1]?.switch().name !== "scvVec") {
-    return undefined;
+  if (outer.length === 3) return outer.slice(1);
+  if (outer.length === 2 && outer[1]?.switch().name === "scvVec") {
+    return outer[1].vec() ?? [];
   }
-  return outer[1].vec() ?? [];
+  return undefined;
 }
 
 export async function verifyRegisteredPasskey(
@@ -246,8 +245,8 @@ export async function readSacBalance(
   const result = await simulateRead(server, sacAddress, "balance", [
     Address.fromString(walletAddress).toScVal(),
   ]);
-  const native = result.i128();
-  return BigInt(native.toString());
+  const native = scValToNative(result);
+  return typeof native === "bigint" ? native : BigInt(String(native));
 }
 
 export async function getLiveBalances(walletAddress: string) {

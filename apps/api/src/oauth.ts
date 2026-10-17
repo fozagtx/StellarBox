@@ -17,6 +17,7 @@ import type {
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { InvalidTokenError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import type { Database } from "@stellabox/db";
 import {
   oauthClients,
@@ -40,7 +41,8 @@ function constantTimeEqual(left: string, right: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-class PostgresOAuthProvider implements OAuthServerProvider {
+export class PostgresOAuthProvider implements OAuthServerProvider {
+  readonly skipLocalPkceValidation = true;
   readonly clientsStore: OAuthRegisteredClientsStore;
   private readonly apiUrl: string;
   private readonly webUrl: string;
@@ -208,16 +210,16 @@ class PostgresOAuthProvider implements OAuthServerProvider {
         and(
           eq(oauthTokens.hash, digest(token)),
           eq(oauthTokens.type, "access"),
-          isNull(oauthTokens.revokedAt),
           gt(oauthTokens.expiresAt, new Date())
         )
       )
       .limit(1);
-    if (!stored) throw new Error("invalid_token");
+    if (!stored) throw new InvalidTokenError("invalid_token");
     const grant = await getGrant(this.db, stored.grantId);
     if (!grant || grant.status !== "active" || grant.expiresAt <= new Date()) {
-      throw new Error("grant_revoked");
+      throw new InvalidTokenError("grant_revoked");
     }
+    if (stored.revokedAt) throw new InvalidTokenError("invalid_token");
     return {
       token,
       clientId: stored.clientId,

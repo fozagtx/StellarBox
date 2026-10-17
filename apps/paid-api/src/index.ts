@@ -1,17 +1,77 @@
 import express, { type Request, type Response } from "express";
-import {
-  HTTPFacilitatorClient,
-  x402ResourceServer,
-} from "@x402/core/server";
+import { readFile } from "node:fs/promises";
+import { x402ResourceServer } from "@x402/core/server";
+import { x402Facilitator } from "@x402/core/facilitator";
 import {
   x402HTTPResourceServer,
   type HTTPRequestContext,
 } from "@x402/core/http";
-import { ExactStellarScheme } from "@x402/stellar/exact/server";
+import { createEd25519Signer } from "@x402/stellar";
+import { ExactStellarScheme as ExactStellarFacilitatorScheme } from "@x402/stellar/exact/facilitator";
+import { ExactStellarScheme as ExactStellarServerScheme } from "@x402/stellar/exact/server";
 import { loadStellarConfig } from "@stellabox/stellar";
 
 const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
 const OPEN_METEO_API = "https://api.open-meteo.com/v1/forecast";
+export const MAX_TRANSACTION_FEE_STROOPS = 2_000_000;
+
+type FacilitatorSimulationEvent = {
+  event: () => {
+    type: () => { name: string };
+    body: () => {
+      v0: () => {
+        topics: () => Array<{
+          switch: () => { name: string };
+          sym: () => { toString: () => string };
+        }>;
+      };
+    };
+  };
+};
+
+type SimulationEventValidator = (
+  events: FacilitatorSimulationEvent[],
+  fromAddress: string,
+  toAddress: string,
+  expectedAmount: bigint,
+  expectedAsset: string
+) => unknown;
+
+function allowSmartAccountPolicyEvents(scheme: ExactStellarFacilitatorScheme) {
+  const internalScheme = scheme as unknown as {
+    validateSimulationEvents: SimulationEventValidator;
+  };
+  const validateSimulationEvents =
+    internalScheme.validateSimulationEvents.bind(scheme);
+  internalScheme.validateSimulationEvents = (
+    events,
+    fromAddress,
+    toAddress,
+    expectedAmount,
+    expectedAsset
+  ) => {
+    const transferEvents = events.filter((diagnosticEvent) => {
+      try {
+        const event = diagnosticEvent.event();
+        if (event.type().name !== "contract") return true;
+        const topic = event.body().v0().topics()[0];
+        return (
+          topic?.switch().name === "scvSymbol" &&
+          topic.sym().toString() === "transfer"
+        );
+      } catch {
+        return true;
+      }
+    });
+    return validateSimulationEvents(
+      transferEvents,
+      fromAddress,
+      toAddress,
+      expectedAmount,
+      expectedAsset
+    );
+  };
+}
 
 function requestContext(request: Request): HTTPRequestContext {
   const adapter = {
@@ -47,9 +107,42 @@ async function fetchJson(url: URL) {
 
 export async function createPaidApiApp() {
   const config = loadStellarConfig();
-  const server = new x402ResourceServer(
-    new HTTPFacilitatorClient({ url: "https://x402.org/facilitator" })
-  ).register("stellar:testnet", new ExactStellarScheme());
+  const facilitatorSecret = (
+    await readFile(
+      new URL("../../../.deploy/paid-api-facilitator.secret", import.meta.url),
+      "utf8"
+    )
+  ).trim();
+  const facilitatorScheme = new ExactStellarFacilitatorScheme(
+    [createEd25519Signer(facilitatorSecret, "stellar:testnet")],
+    {
+      rpcConfig: { url: config.rpcUrl },
+      maxTransactionFeeStroops: MAX_TRANSACTION_FEE_STROOPS,
+    }
+  );
+  allowSmartAccountPolicyEvents(facilitatorScheme);
+  const facilitator = new x402Facilitator().register(
+    "stellar:testnet",
+    facilitatorScheme
+  );
+  const facilitatorClient = {
+    verify: (payload: Parameters<typeof facilitator.verify>[0], requirements: Parameters<typeof facilitator.verify>[1]) =>
+      facilitator.verify(payload, requirements),
+    settle: (payload: Parameters<typeof facilitator.settle>[0], requirements: Parameters<typeof facilitator.settle>[1]) =>
+      facilitator.settle(payload, requirements),
+    getSupported: async () => {
+      const supported = facilitator.getSupported();
+      return {
+        ...supported,
+        kinds: supported.kinds.map((kind) => ({
+          ...kind,
+          network: "stellar:testnet" as const,
+        })),
+      };
+    },
+  };
+  const server = new x402ResourceServer(facilitatorClient)
+    .register("stellar:testnet", new ExactStellarServerScheme());
   const x402 = new x402HTTPResourceServer(server, {
     "GET /search": {
       accepts: {

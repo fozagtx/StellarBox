@@ -2,16 +2,26 @@ import {
   Address,
   contract,
   nativeToScVal,
+  rpc,
   xdr,
 } from "@stellar/stellar-sdk";
 import { x402Client, x402HTTPClient } from "@x402/core/client";
-import type { PaymentRequired } from "@x402/core/types";
-import { ExactStellarScheme, type ClientStellarSigner } from "@x402/stellar";
+import type {
+  PaymentPayload,
+  PaymentRequired,
+  PaymentRequirements,
+} from "@x402/core/types";
+import {
+  ExactStellarScheme,
+  getEstimatedLedgerCloseTimeSeconds,
+  type ClientStellarSigner,
+} from "@x402/stellar";
 import type { AgentKeyStore } from "@stellabox/signer";
 import {
   loadStellarConfig,
   signAgentAuthEntryWithKeyStore,
 } from "@stellabox/stellar";
+import { assertX402MaxAmount } from "./policy.js";
 
 const MAX_RESPONSE_BYTES = 1_000_000;
 const MAX_REQUEST_BODY_BYTES = 65_536;
@@ -68,6 +78,79 @@ function makeHttpClient(
       )
     )
   );
+}
+
+async function createSmartAccountPaymentPayload(input: {
+  paymentRequired: PaymentRequired;
+  requirement: PaymentRequirements;
+  payer: string;
+  authorizeEntry: (
+    entry: xdr.SorobanAuthorizationEntry,
+    expirationLedger: number,
+    networkPassphrase: string
+  ) => Promise<xdr.SorobanAuthorizationEntry>;
+}): Promise<PaymentPayload> {
+  if (input.paymentRequired.x402Version !== 2) {
+    throw new Error("x402_version_unsupported");
+  }
+  const config = loadStellarConfig();
+  const server = new rpc.Server(config.rpcUrl);
+  const latestLedger = await server.getLatestLedger();
+  const estimatedLedgerSeconds = await getEstimatedLedgerCloseTimeSeconds(
+    input.requirement.network
+  );
+  const expirationLedger =
+    latestLedger.sequence +
+    Math.ceil(input.requirement.maxTimeoutSeconds / estimatedLedgerSeconds);
+  const transaction = await contract.AssembledTransaction.build({
+    contractId: input.requirement.asset,
+    method: "transfer",
+    args: [
+      nativeToScVal(input.payer, { type: "address" }),
+      nativeToScVal(input.requirement.payTo, { type: "address" }),
+      nativeToScVal(BigInt(input.requirement.amount), { type: "i128" }),
+    ],
+    networkPassphrase: config.networkPassphrase,
+    rpcUrl: config.rpcUrl,
+    parseResultXdr: (result) => result,
+  });
+  const unsignedSigners = transaction.needsNonInvokerSigningBy();
+  if (
+    unsignedSigners.length !== 1 ||
+    unsignedSigners[0] !== input.payer
+  ) {
+    throw new Error(
+      `x402_unexpected_signers:${unsignedSigners.join(",")}`
+    );
+  }
+  await transaction.signAuthEntries({
+    address: input.payer,
+    expiration: expirationLedger,
+    authorizeEntry: (entry, _signer, entryExpiration, networkPassphrase) =>
+      input.authorizeEntry(entry, entryExpiration, networkPassphrase),
+  });
+  await transaction.simulate();
+  if (
+    transaction.simulation &&
+    "error" in transaction.simulation &&
+    transaction.simulation.error
+  ) {
+    throw new Error(`x402_payment_simulation_failed:${transaction.simulation.error}`);
+  }
+  if (transaction.needsNonInvokerSigningBy().length > 0 || !transaction.built) {
+    throw new Error("x402_payment_authorization_incomplete");
+  }
+  return {
+    x402Version: 2,
+    payload: { transaction: transaction.built.toXDR() },
+    accepted: input.requirement,
+    ...(input.paymentRequired.extensions
+      ? { extensions: input.paymentRequired.extensions }
+      : {}),
+    ...(input.paymentRequired.resource
+      ? { resource: input.paymentRequired.resource }
+      : {}),
+  };
 }
 
 async function fetchPaymentRequired(input: {
@@ -185,44 +268,44 @@ export async function executeX402Approval(input: {
       entry,
     ])
   );
-  const client = makeHttpClient(input.payer, async (encodedEntry) => {
-    const unsigned = xdr.SorobanAuthorizationEntry.fromXDR(encodedEntry, "base64");
-    const signed = signedByInvocation.get(unsigned.rootInvocation().toXDR("base64"));
-    if (!signed) throw new Error("x402_approval_auth_entry_mismatch");
-    const expiration = parseEntryExpiration(unsigned);
-    if (parseEntryExpiration(signed) !== expiration) {
-      throw new Error("x402_approval_auth_expiration_mismatch");
-    }
-    const credentials = signed.credentials();
-    if (
-      credentials.switch().name !== "sorobanCredentialsAddressV2" &&
-      credentials.switch().name !== "sorobanCredentialsAddress"
-    ) {
-      throw new Error("x402_approval_auth_credentials_invalid");
-    }
-    const signedAddress =
-      credentials.switch().name === "sorobanCredentialsAddressV2"
-        ? credentials.addressV2().address()
-        : credentials.address().address();
-    if (Address.fromScAddress(signedAddress).toString() !== input.payer) {
-      throw new Error("x402_approval_auth_payer_mismatch");
-    }
-    return {
-      signedAuthEntry: signed.toXDR("base64"),
-      signerAddress: input.payer,
-    };
+  const httpClient = makeHttpClient(input.payer, async () => {
+    throw new Error("Unexpected x402 authorization signing");
   });
-  const payload = await client.createPaymentPayload({
-    ...prepared.paymentRequired,
-    accepts: [prepared.requirement],
+  const payload = await createSmartAccountPaymentPayload({
+    paymentRequired: prepared.paymentRequired,
+    requirement: prepared.requirement,
+    payer: input.payer,
+    authorizeEntry: async (unsigned) => {
+      const signed = signedByInvocation.get(unsigned.rootInvocation().toXDR("base64"));
+      if (!signed) throw new Error("x402_approval_auth_entry_mismatch");
+      const unsignedExpiration = parseEntryExpiration(unsigned);
+      if (parseEntryExpiration(signed) !== unsignedExpiration) {
+        throw new Error("x402_approval_auth_expiration_mismatch");
+      }
+      const credentials = signed.credentials();
+      if (
+        credentials.switch().name !== "sorobanCredentialsAddressV2" &&
+        credentials.switch().name !== "sorobanCredentialsAddress"
+      ) {
+        throw new Error("x402_approval_auth_credentials_invalid");
+      }
+      const signedAddress =
+        credentials.switch().name === "sorobanCredentialsAddressV2"
+          ? credentials.addressV2().address()
+          : credentials.address().address();
+      if (Address.fromScAddress(signedAddress).toString() !== input.payer) {
+        throw new Error("x402_approval_auth_payer_mismatch");
+      }
+      return signed;
+    },
   });
   const response = await fetch(prepared.target, {
     method: input.method,
     ...(input.body ? { body: input.body } : {}),
-    headers: client.encodePaymentSignatureHeader(payload),
+    headers: httpClient.encodePaymentSignatureHeader(payload),
     redirect: "manual",
   });
-  const settlement = client.getPaymentSettleResponse(
+  const settlement = httpClient.getPaymentSettleResponse(
     (name) => response.headers.get(name)
   );
   if (response.status === 402 || !settlement.success) {
@@ -253,8 +336,8 @@ export async function payX402(input: {
   txCapStroops: bigint;
   remainingBudgetStroops: bigint;
   payer: string;
-  contextRuleId: number;
   agentPublicKey: Buffer;
+  contextRuleId: number;
   kmsKeyRef: string;
   signer: AgentKeyStore;
 }) {
@@ -276,33 +359,9 @@ export async function payX402(input: {
   } catch {
     bodyJson = undefined;
   }
-  const httpClient = new x402HTTPClient(
-    new x402Client().register(
-      "stellar:testnet",
-      new ExactStellarScheme(
-        {
-          address: input.payer,
-          signAuthEntry: async (authEntry, options) => {
-            const entry = xdr.SorobanAuthorizationEntry.fromXDR(authEntry, "base64");
-            const signedEntry = await signAgentAuthEntryWithKeyStore({
-              entry,
-              publicKey: input.agentPublicKey,
-              ed25519Verifier: config.ed25519Verifier,
-              networkPassphrase: options?.networkPassphrase ?? config.networkPassphrase,
-              contextRuleIds: [input.contextRuleId],
-              expirationLedger: parseEntryExpiration(entry),
-              signDigest: (digest) => input.signer.sign(input.kmsKeyRef, digest),
-            });
-            return {
-              signedAuthEntry: signedEntry.toXDR("base64"),
-              signerAddress: input.payer,
-            };
-          },
-        } satisfies ClientStellarSigner,
-        { url: config.rpcUrl }
-      )
-    )
-  );
+  const httpClient = makeHttpClient(input.payer, async () => {
+    throw new Error("Unexpected x402 authorization signing");
+  });
   const paymentRequired = httpClient.getPaymentRequiredResponse(
     (name) => initial.headers.get(name),
     bodyJson
@@ -316,7 +375,9 @@ export async function payX402(input: {
   if (!requirement) throw new Error("x402_requirement_not_supported");
   const amount = BigInt(requirement.amount);
   if (amount <= 0n) throw new Error("x402_requirement_invalid_amount");
-  if (amount > input.maxAmountStroops) {
+  try {
+    assertX402MaxAmount(amount, input.maxAmountStroops);
+  } catch {
     throw new X402LimitError("x402_amount_exceeds_max", amount);
   }
   if (amount > input.txCapStroops) {
@@ -325,9 +386,20 @@ export async function payX402(input: {
   if (amount > input.remainingBudgetStroops) {
     throw new X402LimitError("over_daily_cap", amount);
   }
-  const payload = await httpClient.createPaymentPayload({
-    ...paymentRequired,
-    accepts: [requirement],
+  const payload = await createSmartAccountPaymentPayload({
+    paymentRequired,
+    requirement,
+    payer: input.payer,
+    authorizeEntry: (entry, expirationLedger, networkPassphrase) =>
+      signAgentAuthEntryWithKeyStore({
+        entry,
+        publicKey: input.agentPublicKey,
+        ed25519Verifier: config.ed25519Verifier,
+        networkPassphrase,
+        contextRuleIds: [input.contextRuleId],
+        expirationLedger,
+        signDigest: (digest) => input.signer.sign(input.kmsKeyRef, digest),
+      }),
   });
   const signatureHeaders = httpClient.encodePaymentSignatureHeader(payload);
   const paidResponse = await fetch(target, {
@@ -335,14 +407,42 @@ export async function payX402(input: {
     ...(input.body ? { body: input.body } : {}),
     headers: signatureHeaders,
   });
+  if (paidResponse.status === 402) {
+    const responseText = await paidResponse.clone().text();
+    let responseBody: unknown;
+    try {
+      responseBody = responseText ? JSON.parse(responseText) as unknown : undefined;
+    } catch {
+      responseBody = undefined;
+    }
+    let paymentRequiredError: string | undefined;
+    try {
+      const rejectedPayment = httpClient.getPaymentRequiredResponse(
+        (name) => paidResponse.headers.get(name),
+        responseBody
+      ) as PaymentRequired;
+      paymentRequiredError = rejectedPayment.error;
+    } catch {
+      paymentRequiredError = undefined;
+    }
+    throw new Error(
+      `x402_payment_response_402:${paymentRequiredError ?? responseText.slice(0, 2_000)}`
+    );
+  }
   const result = await httpClient.processPaymentResult(
     payload,
     (name) => paidResponse.headers.get(name),
     paidResponse.status
   );
-  const settlement = httpClient.getPaymentSettleResponse(
-    (name) => paidResponse.headers.get(name)
-  );
+  let settlement;
+  try {
+    settlement = httpClient.getPaymentSettleResponse(
+      (name) => paidResponse.headers.get(name)
+    );
+  } catch {
+    const responseBody = (await paidResponse.clone().text()).slice(0, 2_000);
+    throw new Error(`x402_payment_response_${paidResponse.status}:${responseBody}`);
+  }
   if (paidResponse.status === 402 || !settlement.success || result.settleResponse?.success === false) {
     throw new Error(settlement.errorReason ?? "x402_settlement_failed");
   }

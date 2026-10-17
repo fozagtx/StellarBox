@@ -10,7 +10,8 @@
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "e2e:api": "pnpm --filter @stellabox/api exec tsx ../../scripts/e2e-api.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

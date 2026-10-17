@@ -30,6 +30,12 @@ import { getLiveBalances } from "./chain.js";
 import { notifyApproval } from "./approvals.js";
 import { loadApiConfig } from "./config.js";
 import { payX402, X402LimitError } from "./x402-client.js";
+import {
+  approvalExpiresAt,
+  grantAvailabilityError,
+  spendLimitError,
+  spendTargetError,
+} from "./policy.js";
 
 const STROOPS_PER_USDC = 10_000_000n;
 
@@ -83,7 +89,7 @@ type GrantContext = {
   wallet: { id: string; contractAddress: string; userId: string };
 };
 
-async function grantContext(
+export async function resolveGrantContext(
   db: Database,
   auth: AuthInfo | undefined
 ): Promise<{ context?: GrantContext; error?: Record<string, unknown> }> {
@@ -93,13 +99,9 @@ async function grantContext(
     return { error: { code: "rate_limited", retry_after_seconds: 60 } };
   }
   const grant = await getGrant(db, grantId);
-  if (!grant || grant.status === "revoked") {
-    return { error: { code: "grant_revoked" } };
-  }
-  if (grant.status !== "active") return { error: { code: "grant_revoked" } };
-  if (grant.expiresAt.getTime() <= Date.now()) {
-    return { error: { code: "grant_expired" } };
-  }
+  if (!grant) return { error: { code: "grant_revoked" } };
+  const grantError = grantAvailabilityError(grant);
+  if (grantError) return { error: { code: grantError } };
   const [wallet] = await db
     .select({
       id: wallets.id,
@@ -142,7 +144,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
   const server = new McpServer({ name: "stellabox", version: "0.1.0" });
 
   server.registerTool("get_balance", { description: "Get the wallet's live USDC and XLM balances and grant budget." }, async (extra) => {
-    const { context, error } = await grantContext(db, extra.authInfo);
+    const { context, error } = await resolveGrantContext(db, extra.authInfo);
     if (error) return content(error, true);
     try {
       const [balances, budget] = await Promise.all([
@@ -164,7 +166,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
   });
 
   server.registerTool("list_grants", { description: "Get the grant bound to this OAuth token." }, async (extra) => {
-    const { context, error } = await grantContext(db, extra.authInfo);
+    const { context, error } = await resolveGrantContext(db, extra.authInfo);
     if (error) return content(error, true);
     const value = {
       grants: [{
@@ -193,7 +195,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
       },
     },
     async (args, extra) => {
-      const { context, error } = await grantContext(db, extra.authInfo);
+      const { context, error } = await resolveGrantContext(db, extra.authInfo);
       if (error) return content(error, true);
       let amount: bigint;
       try {
@@ -202,22 +204,24 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
         return content({ code: "chain_error", reason: "invalid_amount" }, true);
       }
       const grant = context!.grant;
-      if (args.asset !== "USDC" || !grant.assets.includes(args.asset)) {
-        await logTool(db, grant.id, "send_payment", args, "rejected", { amount, error: "asset_not_allowed" });
-        return content({ code: "asset_not_allowed" }, true);
-      }
-      if (grant.payees.length > 0 && !grant.payees.includes(args.to)) {
-        await logTool(db, grant.id, "send_payment", args, "rejected", { amount, error: "payee_not_allowed" });
-        return content({ code: "payee_not_allowed" }, true);
+      const targetError = spendTargetError({
+        asset: args.asset,
+        allowedAssets: grant.assets,
+        payee: args.to,
+        allowedPayees: grant.payees,
+      });
+      if (targetError) {
+        await logTool(db, grant.id, "send_payment", args, "rejected", { amount, error: targetError });
+        return content({ code: targetError }, true);
       }
       try {
         const budget = await budgetFor(context!);
-        const code = amount > budget.txMax || amount > grant.txCap
-          ? "over_tx_cap"
-          : amount > budget.remaining
-            ? "over_daily_cap"
-            : undefined;
-        if (code) {
+        const spendDecision = spendLimitError(
+          amount,
+          budget.txMax < grant.txCap ? budget.txMax : grant.txCap,
+          budget.remaining
+        );
+        if (spendDecision === "over_tx_cap" || spendDecision === "over_daily_cap") {
           const approval = await createApproval(db, {
             grantId: grant.id,
             actionJson: {
@@ -226,14 +230,14 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
               amountStroops: amount.toString(),
               asset: args.asset,
               memo: args.memo ?? null,
-              reason: code,
+              reason: spendDecision,
             },
             amount,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            expiresAt: approvalExpiresAt(),
           });
           await notifyApproval(db, grant.id, approval.id);
           await logTool(db, grant.id, "send_payment", args, "approval_required", { amount });
-          return content({ code, approval_id: approval.id }, true);
+          return content({ code: spendDecision, approval_id: approval.id }, true);
         }
         const balances = await getLiveBalances(context!.wallet.contractAddress);
         if (BigInt(balances.usdcStroops) < amount) {
@@ -283,12 +287,12 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
       inputSchema: { action: z.string().min(1), reason: z.string().min(1) },
     },
     async (args, extra) => {
-      const { context, error } = await grantContext(db, extra.authInfo);
+      const { context, error } = await resolveGrantContext(db, extra.authInfo);
       if (error) return content(error, true);
       const approval = await createApproval(db, {
         grantId: context!.grantId,
         actionJson: { kind: "explicit", action: args.action, reason: args.reason },
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+        expiresAt: approvalExpiresAt(),
       });
       await notifyApproval(db, context!.grantId, approval.id);
       await logTool(db, context!.grantId, "request_approval", args, "pending");
@@ -303,7 +307,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
       inputSchema: { approval_id: z.string().uuid() },
     },
     async (args, extra) => {
-      const { context, error } = await grantContext(db, extra.authInfo);
+      const { context, error } = await resolveGrantContext(db, extra.authInfo);
       if (error) return content(error, true);
       const approval = await getApprovalForGrant(db, args.approval_id, context!.grantId);
       if (!approval) return content({ code: "approval_not_found" }, true);
@@ -330,7 +334,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
       inputSchema: { limit: z.number().int().min(1).max(100).default(20) },
     },
     async (args, extra) => {
-      const { context, error } = await grantContext(db, extra.authInfo);
+      const { context, error } = await resolveGrantContext(db, extra.authInfo);
       if (error) return content(error, true);
       const entries = await listActivityForGrant(db, context!.grantId, args.limit);
       await logTool(db, context!.grantId, "get_activity", args, "allowed");
@@ -350,7 +354,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
       },
     },
     async (args, extra) => {
-      const { context, error } = await grantContext(db, extra.authInfo);
+      const { context, error } = await resolveGrantContext(db, extra.authInfo);
       if (error) return content(error, true);
       if (!context!.grant.assets.includes("USDC")) {
         await logTool(db, context!.grantId, "pay_x402", args, "rejected", { error: "asset_not_allowed" });
@@ -372,8 +376,8 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
           txCapStroops: budget.txMax < context!.grant.txCap ? budget.txMax : context!.grant.txCap,
           remainingBudgetStroops: budget.remaining,
           payer: context!.wallet.contractAddress,
-          contextRuleId: context!.grant.contextRuleId!,
           agentPublicKey: Buffer.from(context!.grant.agentPubkey, "base64url"),
+          contextRuleId: context!.grant.contextRuleId!,
           kmsKeyRef: context!.grant.kmsKeyRef,
           signer,
         });
@@ -407,7 +411,7 @@ function createMcpServer(db: Database, signer: AgentKeyStore) {
               reason: cause.code,
             },
             amount: cause.amountStroops,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            expiresAt: approvalExpiresAt(),
           });
           await notifyApproval(db, context!.grantId, approval.id);
           await logTool(db, context!.grantId, "pay_x402", args, "approval_required", {

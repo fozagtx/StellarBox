@@ -353,7 +353,7 @@ export async function ensureFunded(
   throw new Error("Friendbot-funded owner account did not appear on the RPC");
 }
 
-async function addGrantRule(input: {
+export async function addGrantRule(input: {
   client: SmartAccountClient;
   owner: Keypair;
   smartAccount: string;
@@ -377,7 +377,7 @@ async function addGrantRule(input: {
   return { id, transactionHash };
 }
 
-async function removeGrantRule(input: {
+export async function removeGrantRule(input: {
   client: SmartAccountClient;
   owner: Keypair;
   smartAccount: string;

@@ -21,6 +21,7 @@ import { createGrantRouter } from "./grants.js";
 import { createApprovalRouter } from "./approvals.js";
 import { createOAuthRouter } from "./oauth.js";
 import { createMcpRouter } from "./mcp.js";
+import { mapApiError } from "./api-errors.js";
 
 function isWalletDeploy(func: string): boolean {
   try {
@@ -208,16 +209,8 @@ export function createApiApp(db: Database) {
 
   app.use((error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
     void next;
-    const message = error instanceof Error ? error.message : String(error);
-    if (
-      message === "invalid_consent" ||
-      message === "invalid_grant" ||
-      message === "invalid_token"
-    ) {
-      response.status(400).json({ error: message });
-      return;
-    }
-    response.status(500).json({ error: "internal_error" });
+    const mapped = mapApiError(error);
+    response.status(mapped.status).json(mapped.body);
   });
 
   return app;

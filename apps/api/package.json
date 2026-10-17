@@ -7,7 +7,7 @@
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --max-warnings=0",
-    "test": "vitest run"
+    "test": "DATABASE_URL=${DATABASE_URL:-postgres://stellabox:stellabox@127.0.0.1:5433/stellabox} pnpm --filter @stellabox/db db:migrate && DATABASE_URL=${DATABASE_URL:-postgres://stellabox:stellabox@127.0.0.1:5433/stellabox} vitest run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",

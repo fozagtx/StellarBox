@@ -112,7 +112,9 @@ export const oauthClients = pgTable("oauth_clients", {
   name: text("name").notNull(),
   redirectUris: text("redirect_uris").array().notNull(),
   metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull(),
-  registeredAt: createdAt(),
+  registeredAt: timestamp("registered_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const oauthAuthorizationRequests = pgTable(
