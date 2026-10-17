@@ -63,7 +63,7 @@ export default function GrantDetailPage() {
             <>
               <p className="text-[44px] font-semibold leading-none tracking-[-0.04em] tabular-nums">
                 {fromStroops(budget.remaining)}
-                <span className="ml-2 text-[16px] font-medium text-muted">of {fromStroops(budget.spendingLimit)} USDC left</span>
+                <span className="ml-2 text-[16px] font-medium tracking-normal text-muted">of {fromStroops(budget.spendingLimit)} USDC left</span>
               </p>
               <div className="mt-5">
                 <BudgetBar spent={Number(budget.spentInWindow)} limit={Number(budget.spendingLimit)} />

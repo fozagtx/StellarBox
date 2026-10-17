@@ -63,7 +63,7 @@ export default function ApprovalDetailPage() {
         <p className="text-[13px] text-muted">Amount</p>
         <p className="mt-1 text-[44px] font-semibold leading-none tracking-[-0.04em] tabular-nums">
           {item.amount ? fromStroops(item.amount) : "—"}
-          <span className="ml-2 text-[16px] font-medium text-muted">USDC</span>
+          <span className="ml-2 text-[16px] font-medium tracking-normal text-muted">USDC</span>
         </p>
         <dl className="mt-6 divide-y divide-line border-t border-line text-[14px]">
           {rows.map(([label, value]) => (

@@ -30,12 +30,12 @@ export default function AppHomePage() {
 
       <ErrorNote error={wallet.error} onRetry={wallet.reload} />
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Card className="bg-ink text-white">
+        <Card className="border-ink bg-ink text-white">
           <p className="text-[13px] text-white/60">USDC balance</p>
           {wallet.data ? (
             <p className="mt-2 text-[52px] font-semibold leading-none tracking-[-0.04em] tabular-nums">
               {fromStroops(wallet.data.balances.usdcStroops)}
-              <span className="ml-2 text-[18px] font-medium text-white/50">USDC</span>
+              <span className="ml-2 text-[18px] font-medium tracking-normal text-white/50">USDC</span>
             </p>
           ) : (
             <Skeleton className="mt-3 h-12 w-56 bg-white/10" />
