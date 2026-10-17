@@ -49,12 +49,13 @@ function parseEntryExpiration(entry: xdr.SorobanAuthorizationEntry) {
 
 function validateTarget(value: string, body?: string): URL {
   const target = new URL(value);
+  const paidApiPort = String(Number(process.env.PAID_API_PORT ?? 4100));
   if (
     !["https:", "http:"].includes(target.protocol) ||
     target.username ||
     target.password ||
     (target.protocol === "http:" &&
-      !(target.hostname === "localhost" && target.port === "4100"))
+      !(target.hostname === "localhost" && target.port === paidApiPort))
   ) {
     throw new Error("x402_url_not_allowed");
   }

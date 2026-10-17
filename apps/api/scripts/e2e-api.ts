@@ -35,7 +35,9 @@ process.env.API_PORT = "4000";
 const evidencePath = resolve(root, "evidence/e2e-api-testnet.json");
 const secretPath = resolve(root, ".deploy/e2e-api-owner.secret");
 const apiBase = process.env.PUBLIC_API_URL ?? "http://localhost:4000";
-const paidBase = "http://localhost:4100";
+const paidApiPort = Number(process.env.PAID_API_PORT ?? 4100);
+const paidBase =
+  process.env.PAID_API_URL ?? `http://localhost:${paidApiPort}`;
 const steps: Array<{ step: string; result: string; detail?: string }> = [];
 const FACILITATOR_PATH = "in-process @x402/stellar ExactStellarScheme";
 const PUBLIC_FACILITATOR_TRIAL = {
@@ -54,7 +56,7 @@ function record(step: string, result: unknown, detail?: string) {
 }
 
 async function listenPaidApi(): Promise<Server> {
-  const server = (await createPaidApiApp()).listen(4100);
+  const server = (await createPaidApiApp()).listen(paidApiPort);
   await new Promise<void>((resolveListen, reject) => {
     server.once("listening", resolveListen);
     server.once("error", reject);

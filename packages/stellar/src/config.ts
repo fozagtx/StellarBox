@@ -37,7 +37,8 @@ export function loadStellarConfig(env: NodeJS.ProcessEnv = process.env): Stellar
       env.SPENDING_LIMIT_POLICY_ADDRESS ?? deployment.spendingLimitPolicy,
     txMaxPolicy,
     readSourceAccount: env.READ_SOURCE_ACCOUNT ?? deployment.readSourceAccount,
-    merchantAddress: deployment.merchantAddress,
+    merchantAddress:
+      env.PAID_API_MERCHANT_ADDRESS ?? deployment.merchantAddress,
     usdcSac: env.USDC_SAC_ADDRESS ?? deployment.usdcSac,
     xlmSac: env.XLM_SAC_ADDRESS ?? deployment.xlmSac,
     usdcIssuer: env.USDC_ISSUER ?? deployment.usdcIssuer,

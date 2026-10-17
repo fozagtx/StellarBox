@@ -5,7 +5,10 @@ import { agentKeys, createDatabase } from "@stellabox/db";
 import { AgentKeyStore } from "./index.js";
 
 const database = createDatabase();
-const store = new AgentKeyStore(database.db);
+const store = new AgentKeyStore(
+  database.db,
+  randomBytes(32).toString("base64")
+);
 
 afterAll(async () => {
   await database.pool.end();
@@ -47,6 +50,22 @@ describe("AgentKeyStore", () => {
     await expect(store.sign(created.keyId, digest)).rejects.toThrow(
       "Agent signing key does not exist or has been destroyed"
     );
+    await database.db.delete(agentKeys).where(eq(agentKeys.id, created.keyId));
+  });
+
+  it("derives an AES key from a non-base64 Render-generated value", async () => {
+    const generatedValueStore = new AgentKeyStore(
+      database.db,
+      "render-generated-value"
+    );
+    const created = await generatedValueStore.create();
+    const signature = await generatedValueStore.sign(
+      created.keyId,
+      randomBytes(32)
+    );
+
+    expect(signature).toHaveLength(64);
+    await generatedValueStore.destroy(created.keyId);
     await database.db.delete(agentKeys).where(eq(agentKeys.id, created.keyId));
   });
 });

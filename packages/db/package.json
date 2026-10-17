@@ -17,11 +17,11 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "tsx": "^4.19.4"
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",
-    "drizzle-kit": "^0.31.11",
-    "tsx": "^4.19.4"
+    "drizzle-kit": "^0.31.11"
   }
 }

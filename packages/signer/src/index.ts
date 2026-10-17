@@ -1,6 +1,7 @@
 import {
   createCipheriv,
   createDecipheriv,
+  createHash,
   randomBytes,
 } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
@@ -20,7 +21,7 @@ function decodeMasterKey(encoded: string): Buffer {
     key.length !== 32 ||
     key.toString("base64").replace(/=+$/, "") !== encoded.replace(/=+$/, "")
   ) {
-    throw new Error("KEYSTORE_MASTER_KEY must be a base64-encoded 32-byte key");
+    return createHash("sha256").update(encoded, "utf8").digest();
   }
   return key;
 }

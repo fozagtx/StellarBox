@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "../../../../lib/api";
-import { API_BASE_URL } from "../../../../lib/config";
+import { MCP_URL } from "../../../../lib/config";
 import { revokeGrant } from "../../../../lib/kit";
 import { fromStroops, shortAddress, timeUntil } from "../../../../lib/format";
 import { ActivityList, type ActivityEntry } from "../../../../components/activity-list";
@@ -17,7 +17,7 @@ export default function GrantDetailPage() {
   const [revokeError, setRevokeError] = useState<unknown>();
   const [copied, setCopied] = useState(false);
   const g = grant.data;
-  const mcpUrl = `${API_BASE_URL}/mcp`;
+  const mcpUrl = MCP_URL;
   const entries = ((activity.data ?? []) as unknown as ActivityEntry[]).filter((entry) => entry.grantId === id);
 
   async function revoke() {

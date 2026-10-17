@@ -31,6 +31,9 @@ const apiUrl =
   process.env.NEXT_PUBLIC_API_URL ??
   process.env.PUBLIC_API_URL ??
   "http://localhost:4000";
+const paidApiUrl =
+  process.env.PAID_API_URL ??
+  `http://localhost:${process.env.PAID_API_PORT ?? 4100}`;
 const evidencePath = resolve(root, "evidence/e2e-web-testnet.json");
 const stellar = loadStellarConfig();
 const grantName = "Styled E2E grant";
@@ -522,7 +525,7 @@ async function run() {
     const paidResult = (await mcp.callTool({
       name: "pay_x402",
       arguments: {
-        url: "http://localhost:4100/search?q=Stella",
+        url: `${paidApiUrl}/search?q=Stella`,
         method: "GET",
         max_amount: "0.1",
       },
@@ -543,7 +546,7 @@ async function run() {
     }
     await assertTransactionSucceeded(paidPayload.tx_hash);
     record(steps, "mcp_pay_x402_search", {
-      url: "http://localhost:4100/search?q=Stella",
+      url: `${paidApiUrl}/search?q=Stella`,
       transactionHash: paidPayload.tx_hash,
       responseBody: paidPayload.body,
     });

@@ -29,7 +29,7 @@ function encodeBase64Url(bytes: Uint8Array): string {
 
 function patchRelayerFetch(relayerUrl: string): void {
   if (relayerFetchPatched) return;
-  const target = new URL(relayerUrl);
+  const target = new URL(relayerUrl, window.location.href);
   const nativeFetch = window.fetch.bind(window);
   window.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
     const rawUrl =

@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { Keypair } from "@stellar/stellar-sdk";
 import { x402ResourceServer } from "@x402/core/server";
 import { x402Facilitator } from "@x402/core/facilitator";
 import {
@@ -14,6 +15,10 @@ import { loadStellarConfig } from "@stellabox/stellar";
 const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
 const OPEN_METEO_API = "https://api.open-meteo.com/v1/forecast";
 export const MAX_TRANSACTION_FEE_STROOPS = 2_000_000;
+const FACILITATOR_SECRET_FILE = new URL(
+  "../../../.deploy/paid-api-facilitator.secret",
+  import.meta.url
+);
 
 type FacilitatorSimulationEvent = {
   event: () => {
@@ -105,14 +110,47 @@ async function fetchJson(url: URL) {
   return response.json() as Promise<unknown>;
 }
 
+async function loadFacilitatorSecret(): Promise<string> {
+  const configuredSecret = process.env.PAID_API_FACILITATOR_SECRET?.trim();
+  if (configuredSecret) return configuredSecret;
+
+  try {
+    const savedSecret = (await readFile(FACILITATOR_SECRET_FILE, "utf8")).trim();
+    if (savedSecret) return savedSecret;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+
+  const keypair = Keypair.random();
+  const response = await fetch(
+    `https://friendbot.stellar.org/?addr=${encodeURIComponent(keypair.publicKey())}`
+  );
+  if (!response.ok) {
+    throw new Error(`Friendbot funding failed with HTTP ${response.status}`);
+  }
+
+  await mkdir(new URL("../../../.deploy/", import.meta.url), {
+    recursive: true,
+  });
+  try {
+    await writeFile(FACILITATOR_SECRET_FILE, keypair.secret(), {
+      encoding: "utf8",
+      mode: 0o600,
+      flag: "wx",
+    });
+    console.log(
+      `Generated testnet facilitator fee account ${keypair.publicKey()}`
+    );
+    return keypair.secret();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    return (await readFile(FACILITATOR_SECRET_FILE, "utf8")).trim();
+  }
+}
+
 export async function createPaidApiApp() {
   const config = loadStellarConfig();
-  const facilitatorSecret = (
-    await readFile(
-      new URL("../../../.deploy/paid-api-facilitator.secret", import.meta.url),
-      "utf8"
-    )
-  ).trim();
+  const facilitatorSecret = await loadFacilitatorSecret();
   const facilitatorScheme = new ExactStellarFacilitatorScheme(
     [createEd25519Signer(facilitatorSecret, "stellar:testnet")],
     {
@@ -275,7 +313,7 @@ export async function createPaidApiApp() {
   return app;
 }
 
-const port = Number(process.env.PAID_API_PORT ?? 4100);
+const port = Number(process.env.PAID_API_PORT ?? process.env.PORT ?? 4100);
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1])) {
   const app = await createPaidApiApp();
   app.listen(port, () => console.log(`StellaBox paid API listening on ${port}`));

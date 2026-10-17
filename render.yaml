@@ -1,0 +1,58 @@
+databases:
+  - name: stellabox-db
+    databaseName: stellabox
+    user: stellabox
+    plan: free
+
+services:
+  - type: web
+    name: stellabox-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @stellabox/db db:migrate && pnpm --filter @stellabox/api start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stellabox-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: KEYSTORE_MASTER_KEY
+        generateValue: true
+      - key: CHANNELS_API_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:theprocesst1@gmail.com
+      - key: WEB_HOST
+        fromService:
+          type: web
+          name: stellabox-web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+
+  - type: web
+    name: stellabox-paid-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @stellabox/paid-api start
+    envVars:
+      - key: PAID_API_FACILITATOR_SECRET
+        sync: false
+
+  - type: web
+    name: stellabox-web
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @stellabox/web build
+    startCommand: pnpm --filter @stellabox/web start
+    envVars:
+      - key: API_HOST
+        fromService:
+          type: web
+          name: stellabox-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
