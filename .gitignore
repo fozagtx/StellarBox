@@ -6,3 +6,4 @@ target/
 *.tsbuildinfo
 dist/
 .deploy/
+*.tsbuildinfo

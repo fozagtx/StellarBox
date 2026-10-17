@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "tsx src/server.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/server.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --max-warnings=0",
     "test": "DATABASE_URL=${DATABASE_URL:-postgres://stellabox:stellabox@127.0.0.1:5433/stellabox} pnpm --filter @stellabox/db db:migrate && DATABASE_URL=${DATABASE_URL:-postgres://stellabox:stellabox@127.0.0.1:5433/stellabox} vitest run"
