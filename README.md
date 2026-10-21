@@ -9,7 +9,7 @@ You create the wallet with a passkey. There is no seed phrase, and fees are spon
 ## How it works
 
 1. **Create a wallet.** The browser creates a P-256 passkey and deploys an OpenZeppelin smart account whose admin signer is that passkey. OpenZeppelin Channels relays the deployment, so you pay no fees. The passkey's registration response proves you hold it, so creating the wallet also signs you in. You see one passkey prompt.
-2. **Fund it.** Send testnet USDC or XLM to the contract address shown on the Deposit page.
+2. **Fund it.** Tap **Get test USDC** on the Deposit page to get 10 testnet USDC, once an hour. The API funds a throwaway account with Friendbot, swaps the XLM for Circle testnet USDC on the testnet exchange, and transfers it into the wallet. Circle's faucet can't do this itself: it sends classic payments, which only reach `G…` accounts, not the wallet's `C…` contract address.
 3. **Grant an agent.** A grant adds a context rule to the smart account. The rule has an Ed25519 agent signer, the OpenZeppelin spending-limit policy for the daily cap, and the `tx-max-policy` contract in this repo for the per-transaction cap. You sign the rule with your passkey. The API stores the agent key encrypted under `KEYSTORE_MASTER_KEY`.
 4. **The agent pays.** An MCP client authorizes with OAuth against one grant, then calls `send_payment` or `pay_x402`. The agent key signs the authorization, the policies check it on-chain, and Channels submits it.
 5. **Approvals.** For anything outside the grant, the agent calls `request_approval`. You approve or reject in the app (with optional web push), confirming with your passkey.
@@ -99,6 +99,9 @@ This is expected before you sign in. The page checks for an existing session on 
 
 **`publicKey.pubKeyCredParams is missing ... ES256 and RS256` warning.**
 This is expected. The on-chain WebAuthn verifier only supports P-256 (ES256), so the app requests only that algorithm. Every platform authenticator supports it.
+
+**I used Circle's faucet but the wallet shows 0 USDC.**
+Circle's faucet sends classic Stellar payments, which can't reach a smart account's `C…` address, so nothing arrives. Use **Get test USDC** on the Deposit page instead. To send from another wallet, use one that supports Soroban token transfers to contract addresses.
 
 **The passkey prompt was cancelled or timed out.**
 Tap the button again and finish the prompt. If wallet creation succeeded but sign-in didn't finish, use **Sign in with passkey**. The browser remembers the credential.
