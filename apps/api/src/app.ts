@@ -21,6 +21,7 @@ import {
   startSession,
   verifyWalletRegistration,
 } from "./auth.js";
+import { createFaucetRouter } from "./faucet.js";
 import { getLiveBalances, verifyRegisteredPasskey } from "./chain.js";
 import { loadApiConfig } from "./config.js";
 import { createGrantRouter } from "./grants.js";
@@ -108,6 +109,7 @@ export function createApiApp(db: Database) {
   const signer = new AgentKeyStore(db);
   app.use(createGrantRouter(db, signer, requireSession));
   app.use(createApprovalRouter(db, requireSession));
+  app.use(createFaucetRouter(db, requireSession));
   const oauth = createOAuthRouter(db, requireSession);
   app.use(oauth.router);
   app.use(createMcpRouter(db, oauth.provider, signer));
