@@ -22,7 +22,10 @@ import {
 import { AgentKeyStore } from "@stellabox/signer";
 import { loadStellarConfig } from "@stellabox/stellar";
 import { InvalidGrantError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import express from "express";
 import { createApiApp } from "./app.js";
+import { createSessionMiddleware } from "./auth.js";
+import { createFaucetRouter, FAUCET_USDC } from "./faucet.js";
 import { PostgresOAuthProvider } from "./oauth.js";
 import { mapApiError } from "./api-errors.js";
 import { decideSpend, approvalExpiresAt } from "./policy.js";
@@ -432,6 +435,66 @@ describe("relay ownership", () => {
         server.close((error) => (error ? reject(error) : resolve()));
       });
       await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+    }
+  });
+});
+
+describe("test USDC faucet", () => {
+  it("funds the session wallet in the background and limits claims to one an hour", async () => {
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const signature = createHmac("sha256", process.env.SESSION_SECRET!)
+      .update(token)
+      .digest("base64url");
+    await db.insert(sessions).values({
+      userId,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    const funded: Array<{ smartAccount: string; minimumUsdc?: string }> = [];
+    const app = express();
+    app.use(
+      createFaucetRouter(db, createSessionMiddleware(db), async (input) => {
+        funded.push(input);
+        return { source: "G", pathPaymentHash: "p", sacTransferHash: "faucet-hash" };
+      })
+    );
+    const server = app.listen(0, "127.0.0.1");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("listening", resolve);
+        server.once("error", reject);
+      });
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("Faucet test server did not bind to a TCP port");
+      }
+      const url = `http://127.0.0.1:${address.port}/faucet`;
+      const headers = {
+        Cookie: `stellabox_session=${encodeURIComponent(`${token}.${signature}`)}`,
+      };
+
+      const first = await fetch(url, { method: "POST", headers });
+      expect(first.status).toBe(202);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(await (await fetch(url, { headers })).json()).toEqual({
+        status: "done",
+        hash: "faucet-hash",
+      });
+      const [wallet] = await db.select().from(wallets).where(eq(wallets.id, walletId)).limit(1);
+      expect(funded).toEqual([
+        { smartAccount: wallet!.contractAddress, minimumUsdc: FAUCET_USDC },
+      ]);
+
+      const second = await fetch(url, { method: "POST", headers });
+      expect(second.status).toBe(429);
+      expect(funded).toHaveLength(1);
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+      await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+      await db.delete(rateLimits).where(eq(rateLimits.key, `faucet:${userId}`));
     }
   });
 });

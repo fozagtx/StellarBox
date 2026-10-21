@@ -237,6 +237,14 @@ export const api = {
       `/approvals/${encodeURIComponent(id)}/decision`,
       { method: "POST", body: jsonBody(decision) }
     ),
+  requestTestUsdc: () =>
+    request<{ status: "pending" }>("/faucet", { method: "POST" }),
+  testUsdcStatus: () =>
+    request<
+      | { status: "idle" | "pending" }
+      | { status: "done"; hash: string }
+      | { status: "failed"; message: string }
+    >("/faucet"),
   vapidPublicKey: () =>
     request<{ publicKey: string }>("/push/vapid-public-key"),
   subscribePush: (subscription: PushSubscriptionJSON) =>
