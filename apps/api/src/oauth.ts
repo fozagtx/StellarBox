@@ -17,7 +17,10 @@ import type {
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import { InvalidTokenError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import {
+  InvalidGrantError,
+  InvalidTokenError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import type { Database } from "@stellabox/db";
 import {
   oauthClients,
@@ -62,13 +65,15 @@ export class PostgresOAuthProvider implements OAuthServerProvider {
           .limit(1);
         return client?.metadata as OAuthClientInformationFull | undefined;
       },
+      // The SDK has already issued a client_secret when the client asked for
+      // client_secret_post. Keep the client's chosen auth method so the
+      // registration response never says "none" while also requiring a secret.
       registerClient: async (metadata) => {
         const clientId = randomBytes(24).toString("base64url");
         const client = {
           ...metadata,
           client_id: clientId,
           client_id_issued_at: Math.floor(Date.now() / 1000),
-          token_endpoint_auth_method: "none",
         } as OAuthClientInformationFull;
         await db.insert(oauthClients).values({
           id: clientId,
@@ -120,7 +125,7 @@ export class PostgresOAuthProvider implements OAuthServerProvider {
         )
       )
       .limit(1);
-    if (!stored) throw new Error("invalid_grant");
+    if (!stored) throw new InvalidGrantError("Invalid or expired authorization grant");
     return stored.codeChallenge;
   }
 
@@ -145,20 +150,20 @@ export class PostgresOAuthProvider implements OAuthServerProvider {
       )
       .limit(1);
     if (!stored || !codeVerifier || stored.redirectUri !== redirectUri) {
-      throw new Error("invalid_grant");
+      throw new InvalidGrantError("Invalid or expired authorization grant");
     }
     const verifierHash = createHash("sha256")
       .update(codeVerifier)
       .digest("base64url");
     if (!constantTimeEqual(verifierHash, stored.codeChallenge)) {
-      throw new Error("invalid_grant");
+      throw new InvalidGrantError("Invalid or expired authorization grant");
     }
     const [consumed] = await this.db
       .update(oauthCodes)
       .set({ consumedAt: new Date() })
       .where(and(eq(oauthCodes.id, stored.id), isNull(oauthCodes.consumedAt)))
       .returning();
-    if (!consumed) throw new Error("invalid_grant");
+    if (!consumed) throw new InvalidGrantError("Invalid or expired authorization grant");
     return this.issueTokenPair(
       stored.grantId,
       client.client_id,
@@ -186,13 +191,13 @@ export class PostgresOAuthProvider implements OAuthServerProvider {
         )
       )
       .limit(1);
-    if (!stored) throw new Error("invalid_grant");
+    if (!stored) throw new InvalidGrantError("Invalid or expired authorization grant");
     const [rotated] = await this.db
       .update(oauthTokens)
       .set({ revokedAt: new Date() })
       .where(and(eq(oauthTokens.id, stored.id), isNull(oauthTokens.revokedAt)))
       .returning({ id: oauthTokens.id });
-    if (!rotated) throw new Error("invalid_grant");
+    if (!rotated) throw new InvalidGrantError("Invalid or expired authorization grant");
     return this.issueTokenPair(
       stored.grantId,
       client.client_id,
@@ -302,7 +307,7 @@ export class PostgresOAuthProvider implements OAuthServerProvider {
   ): Promise<OAuthTokens> {
     const grant = await getGrant(this.db, grantId);
     if (!grant || grant.status !== "active" || grant.expiresAt <= new Date()) {
-      throw new Error("invalid_grant");
+      throw new InvalidGrantError("Invalid or expired authorization grant");
     }
     const accessToken = randomBytes(32).toString("base64url");
     const refreshToken = randomBytes(48).toString("base64url");

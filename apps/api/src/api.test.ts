@@ -21,6 +21,7 @@ import {
 } from "@stellabox/db";
 import { AgentKeyStore } from "@stellabox/signer";
 import { loadStellarConfig } from "@stellabox/stellar";
+import { InvalidGrantError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import { createApiApp } from "./app.js";
 import { PostgresOAuthProvider } from "./oauth.js";
 import { mapApiError } from "./api-errors.js";
@@ -254,7 +255,7 @@ describe("Postgres OAuth provider", () => {
         redirectUri,
         new URL("http://localhost:4000/mcp")
       )
-    ).rejects.toThrow("invalid_grant");
+    ).rejects.toBeInstanceOf(InvalidGrantError);
     const tokens = await provider.exchangeAuthorizationCode(
       client,
       code!,
@@ -431,6 +432,71 @@ describe("relay ownership", () => {
         server.close((error) => (error ? reject(error) : resolve()));
       });
       await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+    }
+  });
+});
+
+describe("OAuth client registration over HTTP", () => {
+  it("keeps the requested auth method and returns invalid_grant for a bad code", async () => {
+    const server = createApiApp(db).listen(0, "127.0.0.1");
+    let clientId: string | undefined;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("listening", resolve);
+        server.once("error", reject);
+      });
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        throw new Error("API test server did not bind to a TCP port");
+      }
+      const base = `http://127.0.0.1:${address.port}`;
+      const redirectUri = "https://claude.ai/api/mcp/auth_callback";
+
+      const secretClient = await fetch(`${base}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_name: "Secret client",
+          redirect_uris: [redirectUri],
+          token_endpoint_auth_method: "client_secret_post",
+        }),
+      }).then((result) => result.json() as Promise<Record<string, string>>);
+      clientId = secretClient.client_id;
+      expect(secretClient.token_endpoint_auth_method).toBe("client_secret_post");
+      expect(secretClient.client_secret).toBeTruthy();
+
+      const badCode = await fetch(`${base}/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: secretClient.client_id!,
+          client_secret: secretClient.client_secret!,
+          code: "not-a-real-code",
+          code_verifier: randomBytes(32).toString("base64url"),
+          redirect_uri: redirectUri,
+        }),
+      });
+      expect(badCode.status).toBe(400);
+      expect((await badCode.json()).error).toBe("invalid_grant");
+
+      const publicClient = await fetch(`${base}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_name: "Public client",
+          redirect_uris: [redirectUri],
+          token_endpoint_auth_method: "none",
+        }),
+      }).then((result) => result.json() as Promise<Record<string, string>>);
+      await db.delete(oauthClients).where(eq(oauthClients.id, publicClient.client_id!));
+      expect(publicClient.token_endpoint_auth_method).toBe("none");
+      expect(publicClient.client_secret).toBeUndefined();
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+      if (clientId) await db.delete(oauthClients).where(eq(oauthClients.id, clientId));
     }
   });
 });
