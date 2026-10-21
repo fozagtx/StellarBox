@@ -1,6 +1,7 @@
 import type {
   AuthenticationResponseJSON,
   PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
 import { API_BASE_URL } from "./config";
 
@@ -170,11 +171,18 @@ export const api = {
     contractId: string;
     credentialId: string;
     publicKey: string;
+    registration?: RegistrationResponseJSON;
   }) =>
-    request<{ userId: string; walletId: string; contractId: string }>(
-      "/wallets/register",
-      { method: "POST", body: jsonBody(input) }
-    ),
+    request<{
+      signedIn: boolean;
+      userId: string;
+      walletId: string;
+      contractId: string;
+    }>("/wallets/register", { method: "POST", body: jsonBody(input) }),
+  registrationOptions: () =>
+    request<{ challenge: string }>("/auth/register/options", {
+      method: "POST",
+    }),
   authOptions: (credentialId: string) =>
     request<PublicKeyCredentialRequestOptionsJSON>("/auth/options", {
       method: "POST",

@@ -15,7 +15,12 @@ import {
   submitSorobanTransaction,
   submitXdrTransaction,
 } from "@stellabox/stellar";
-import { createAuthRouter, createSessionMiddleware } from "./auth.js";
+import {
+  createAuthRouter,
+  createSessionMiddleware,
+  startSession,
+  verifyWalletRegistration,
+} from "./auth.js";
 import { getLiveBalances, verifyRegisteredPasskey } from "./chain.js";
 import { loadApiConfig } from "./config.js";
 import { createGrantRouter } from "./grants.js";
@@ -225,12 +230,23 @@ export function createApiApp(db: Database) {
         response.status(422).json({ error: "passkey_not_found_on_chain" });
         return;
       }
+      const registration = request.body?.registration;
+      const proven =
+        registration !== undefined &&
+        (await verifyWalletRegistration(
+          db,
+          registration,
+          credentialId,
+          publicKeyBytes
+        ));
       const registered = await registerWallet(db, {
         contractAddress,
         credentialId,
         publicKey,
       });
+      if (proven) await startSession(db, response, registered.user.id);
       response.status(201).json({
+        signedIn: proven,
         userId: registered.user.id,
         walletId: registered.wallet.id,
         contractId: registered.wallet.contractAddress,

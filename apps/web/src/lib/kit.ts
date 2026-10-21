@@ -1,6 +1,11 @@
 "use client";
 
-import { startAuthentication, WebAuthnError } from "@simplewebauthn/browser";
+import {
+  startAuthentication,
+  startRegistration,
+  WebAuthnError,
+  type RegistrationResponseJSON,
+} from "@simplewebauthn/browser";
 import { xdr } from "@stellar/stellar-sdk";
 import { createEd25519Signer, LocalStorageAdapter } from "smart-account-kit";
 import type { SmartAccountKit as SmartAccountKitType } from "smart-account-kit";
@@ -13,6 +18,30 @@ type Kit = SmartAccountKitType;
 const CREDENTIAL_ID_KEY = "stellabox.credentialId";
 let kitPromise: Promise<Kit> | undefined;
 let relayerFetchPatched = false;
+let registrationChallenge: string | undefined;
+let lastRegistration: RegistrationResponseJSON | undefined;
+
+// The kit generates its own random registration challenge. Swapping in a
+// server-issued one lets the API verify the new passkey and open a session,
+// so creating a wallet needs only one passkey prompt.
+const registerWithServerChallenge: typeof startRegistration = async (options) => {
+  const challenge = registrationChallenge;
+  registrationChallenge = undefined;
+  const response = await startRegistration({
+    ...options,
+    optionsJSON: challenge
+      ? { ...options.optionsJSON, challenge }
+      : options.optionsJSON,
+  });
+  lastRegistration = challenge ? response : undefined;
+  return response;
+};
+
+function takeRegistration(): RegistrationResponseJSON | undefined {
+  const registration = lastRegistration;
+  lastRegistration = undefined;
+  return registration;
+}
 
 function decodeBase64Url(value: string): Uint8Array {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -104,6 +133,7 @@ export async function getKit(): Promise<Kit> {
         rpId: window.location.hostname,
         rpName: "StellaBox",
         allowedOrigins: [window.location.origin],
+        webAuthn: { startRegistration: registerWithServerChallenge, startAuthentication },
       });
     });
   }
@@ -133,6 +163,11 @@ async function connectOwner(kit: Kit): Promise<ApiSession> {
 
 export async function createWallet(name: string) {
   const kit = await getKit();
+  registrationChallenge = await api
+    .registrationOptions()
+    .then(({ challenge }) => challenge)
+    .catch(() => undefined);
+  lastRegistration = undefined;
   const result = await kit.createWallet("StellaBox", name, {
     autoSubmit: true,
     forceMethod: "relayer",
@@ -141,10 +176,12 @@ export async function createWallet(name: string) {
     throw new Error(result.submitResult.error.message);
   }
   window.localStorage.setItem(CREDENTIAL_ID_KEY, result.credentialId);
+  const registration = takeRegistration();
   const registered = await api.registerWallet({
     contractId: result.contractId,
     credentialId: result.credentialId,
     publicKey: encodeBase64Url(result.publicKey),
+    ...(registration?.id === result.credentialId ? { registration } : {}),
   });
   return { ...registered, deployment: result.submitResult };
 }
