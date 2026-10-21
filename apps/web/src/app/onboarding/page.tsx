@@ -34,7 +34,11 @@ export default function OnboardingPage() {
     setError(undefined);
     try {
       setStep("Creating your passkey and deploying your smart account on testnet…");
-      await createWallet(name.trim() || "StellaBox user");
+      const wallet = await createWallet(name.trim() || "StellaBox user");
+      if (wallet.signedIn) {
+        window.location.assign(nextPath());
+        return;
+      }
       try {
         await api.session();
       } catch (reason) {
