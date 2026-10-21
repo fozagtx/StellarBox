@@ -26,8 +26,8 @@ export default function DepositPage() {
         await new Promise((resolve) => window.setTimeout(resolve, 4000));
         const job = await api.testUsdcStatus();
         if (job.status === "done") {
-          setFundedHash(job.hash);
           await wallet.reload();
+          setFundedHash(job.hash);
           return;
         }
         if (job.status === "failed") throw new Error(job.message);
