@@ -103,6 +103,9 @@ This is expected. The on-chain WebAuthn verifier only supports P-256 (ES256), so
 **I used Circle's faucet but the wallet shows 0 USDC.**
 Circle's faucet sends classic Stellar payments, which can't reach a smart account's `C…` address, so nothing arrives. Use **Get test USDC** on the Deposit page instead. To send from another wallet, use one that supports Soroban token transfers to contract addresses.
 
+**`pay_x402` fails with `invalid_exact_stellar_payload_fee_exceeds_maximum`.**
+The endpoint's x402 facilitator caps transaction fees below what a smart-account payment costs. Every payment runs the account's `__check_auth`, including the passkey verifier and both spending policies, so its Soroban fee is higher than a plain ed25519 payment's. Facilitators such as `x402.org` reject it, and no USDC is spent. StellaBox's paid API (`stellabox-paid-api`, with `/search` and `/weather`) allows up to 0.2 XLM in fees and accepts these payments. To run your own x402 endpoint, raise its facilitator's maximum fee in the same way.
+
 **The passkey prompt was cancelled or timed out.**
 Tap the button again and finish the prompt. If wallet creation succeeded but sign-in didn't finish, use **Sign in with passkey**. The browser remembers the credential.
 
