@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="StellaBox logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7D00FF"/>
+      <stop offset="1" stop-color="#14B6E7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- tile -->
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+
+  <!-- sparkles -->
+  <path d="M128 26 Q136 58 168 66 Q136 74 128 106 Q120 74 88 66 Q120 58 128 26 Z" fill="#ffffff"/>
+  <path d="M197 44 Q200 55 211 58 Q200 61 197 72 Q194 61 183 58 Q194 55 197 44 Z" fill="#ffffff" opacity="0.85"/>
+  <path d="M58 92 Q60 100 68 102 Q60 104 58 112 Q56 104 48 102 Q56 100 58 92 Z" fill="#ffffff" opacity="0.7"/>
+
+  <!-- isometric box -->
+  <path d="M128 112 L194 145 L128 178 L62 145 Z" fill="#ffffff"/>
+  <path d="M62 145 L128 178 L128 238 L62 205 Z" fill="#ffffff" opacity="0.72"/>
+  <path d="M194 145 L128 178 L128 238 L194 205 Z" fill="#ffffff" opacity="0.5"/>
+</svg>
