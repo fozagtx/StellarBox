@@ -1,16 +1,16 @@
 {
   "status": "passed",
-  "startedAt": "2026-10-17T02:39:42.226Z",
+  "startedAt": "2026-11-23T00:15:14.948Z",
   "networkPassphrase": "Test SDF Network ; September 2015",
-  "webUrl": "http://localhost:3000",
-  "apiUrl": "http://localhost:4000",
+  "webUrl": "https://stellabox-web.vercel.app",
+  "apiUrl": "https://stellabox-api.vercel.app",
   "network": "testnet",
   "steps": [
     {
       "step": "create_wallet_with_passkey",
       "status": "passed",
-      "contractId": "CA2YOPT5ZOYUURPJKVCAZK3ISEO5377YQYFC7G5IFRVXRENR6BHLTV36",
-      "walletId": "f0895248-13f2-4c71-8e41-56cc0ad62f68",
+      "contractId": "CAFPHY3M2BTJA2RIHMLRZHAHTWBHJ3L6X4YNV625GUTFHIYUIHFWS4MY",
+      "walletId": "0fb72fea-a47b-4215-83b2-ab5031ca6eb6",
       "registered": true,
       "onChainContextRuleCount": 1,
       "ownerRuleSignerCount": 1,
@@ -22,15 +22,15 @@
       "step": "fund_wallet_with_testnet_usdc",
       "status": "passed",
       "amountUsdc": "3",
-      "source": "GBHLUHQOF524MU4QHVCL65BYPMPXWGSQVMDCOZOAIL3D55MQEVCEUEFD",
-      "pathPaymentHash": "63372967d40387aa3903f9695706fa575706f8bd5d23c00201523693251aabc8",
-      "sacTransferHash": "58cd2f21b0b8fc84f2979ab2c2411a14fb47a654950f274002d04c886558e02b",
+      "source": "GAIYPZJCYQPNUIKWNHNQ3HOK5CTUJZ7QWF54BIBW7JWNI7RMLNQR6EVS",
+      "pathPaymentHash": "9523d31f4102572e60565a9898c235b60523d1418d84a49a984ab38d9ca591a0",
+      "sacTransferHash": "3a9ca82e2fd72093fc42c28f35eabfcedfcbc30e3ee3f6d4453b8f18b99e1941",
       "walletUsdcStroops": "30000000"
     },
     {
       "step": "create_grant_with_passkey",
       "status": "active",
-      "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+      "grantId": "3e41620e-6f97-44b6-a01e-3b104fd43e63",
       "contextRuleId": 1,
       "dailyCapStroops": "50000000",
       "txCapStroops": "10000000",
@@ -48,7 +48,7 @@
       "step": "oauth_dcr_pkce_consent_token",
       "status": "passed",
       "clientName": "StellaBox Web E2E",
-      "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+      "grantId": "3e41620e-6f97-44b6-a01e-3b104fd43e63",
       "scope": "stellabox",
       "accessTokenExpiresInSeconds": 900,
       "pkceMethod": "S256"
@@ -71,7 +71,7 @@
       "response": {
         "grants": [
           {
-            "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+            "grantId": "3e41620e-6f97-44b6-a01e-3b104fd43e63",
             "name": "Styled E2E grant",
             "client": "StellaBox Web E2E",
             "daily_cap_stroops": "50000000",
@@ -79,7 +79,7 @@
             "assets": [
               "USDC"
             ],
-            "expires_at": "2026-10-24T02:40:51.474Z"
+            "expires_at": "2026-11-30T00:15:54.788Z"
           }
         ]
       }
@@ -88,9 +88,9 @@
       "step": "mcp_send_payment_0_5_usdc",
       "status": "passed",
       "recipient": "GDICPDB4L2PVQFVLEG4CAR3XUQWS5OTRBQBOMQUYUVQDTKZ34IKETXAK",
-      "transactionHash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+      "transactionHash": "66c8f1cd5ab1c0bdd1d46268225641f1615a3688f638155c6b6238700c36bae4",
       "response": {
-        "tx_hash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+        "tx_hash": "66c8f1cd5ab1c0bdd1d46268225641f1615a3688f638155c6b6238700c36bae4",
         "remaining_budget_stroops": "45000000",
         "status": "confirmed"
       }
@@ -98,8 +98,8 @@
     {
       "step": "mcp_pay_x402_search",
       "status": "passed",
-      "url": "http://localhost:4100/search?q=Stella",
-      "transactionHash": "dabcf829d476db62018f68c603a906494e8bd0ef648ba0545b5271d94cfb180e",
+      "url": "https://musicians-inch-comment-diploma.trycloudflare.com/search?q=Stella",
+      "transactionHash": "a5166b1b943625357c1f2b1dd61eb92b1dd0ad665dc1e9bd7be3871e62450fac",
       "responseBody": {
         "batchcomplete": "",
         "continue": {
@@ -108,80 +108,62 @@
         },
         "query": {
           "searchinfo": {
-            "totalhits": 34984
+            "totalhits": 35095
           },
           "search": [
             {
               "ns": 0,
               "title": "Stella",
               "pageid": 444168,
-              "size": 6987,
-              "wordcount": 835,
+              "size": 6967,
+              "wordcount": 828,
               "snippet": "Look up <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">stella</span> in Wiktionary, the free dictionary. <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">STELLA</span> may refer to: <span class=\"searchmatch\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\"searchmatch\">Stella</span> (1943",
-              "timestamp": "2026-04-09T15:14:06Z"
+              "timestamp": "2026-11-05T20:03:56Z"
             },
             {
               "ns": 0,
               "title": "Stella Lefty",
               "pageid": 83239960,
-              "size": 46924,
-              "wordcount": 3216,
+              "size": 48739,
+              "wordcount": 3312,
               "snippet": "<span class=\"searchmatch\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\"searchmatch\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;",
-              "timestamp": "2026-10-16T23:49:13Z"
-            },
-            {
-              "ns": 0,
-              "title": "Lennon Stella",
-              "pageid": 59004930,
-              "size": 37206,
-              "wordcount": 2074,
-              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going",
-              "timestamp": "2026-10-12T06:37:14Z"
+              "timestamp": "2026-11-21T20:45:13Z"
             },
             {
               "ns": 0,
               "title": "Maisy Stella",
               "pageid": 37437004,
-              "size": 15768,
-              "wordcount": 1018,
+              "size": 21249,
+              "wordcount": 1682,
               "snippet": "MaryLynne and Brad <span class=\"searchmatch\">Stella</span>, who are members of the country duo the <span class=\"searchmatch\">Stellas</span>, and she has an older sister, Lennon <span class=\"searchmatch\">Stella</span>. <span class=\"searchmatch\">Stella</span> is queer. <span class=\"searchmatch\">Stella</span> had her breakthrough",
-              "timestamp": "2026-08-26T01:02:55Z"
+              "timestamp": "2026-11-11T07:27:07Z"
+            },
+            {
+              "ns": 0,
+              "title": "Lennon Stella",
+              "pageid": 59004930,
+              "size": 37549,
+              "wordcount": 2136,
+              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian-American singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before",
+              "timestamp": "2026-11-11T02:45:28Z"
             },
             {
               "ns": 0,
               "title": "Stella McCartney",
               "pageid": 860648,
-              "size": 36236,
+              "size": 36208,
               "wordcount": 3067,
               "snippet": "<span class=\"searchmatch\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer",
-              "timestamp": "2026-07-20T21:57:34Z"
+              "timestamp": "2026-11-08T22:51:23Z"
             },
             {
               "ns": 0,
-              "title": "Stella Artois",
-              "pageid": 28486,
-              "size": 25747,
-              "wordcount": 2393,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
-              "timestamp": "2026-09-21T20:16:17Z"
-            },
-            {
-              "ns": 0,
-              "title": "Stella Parton",
-              "pageid": 2577538,
-              "size": 15028,
-              "wordcount": 1658,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
-              "timestamp": "2026-09-21T21:34:04Z"
-            },
-            {
-              "ns": 0,
-              "title": "Stella Tennant",
-              "pageid": 5773829,
-              "size": 16250,
-              "wordcount": 1300,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned",
-              "timestamp": "2026-10-05T16:26:12Z"
+              "title": "The Stellas",
+              "pageid": 35339189,
+              "size": 10656,
+              "wordcount": 979,
+              "snippet": "The <span class=\"searchmatch\">Stellas</span> were a married Canadian country music duo from Whitby, Ontario. They finished in fourth place on the second season of the CMT series Can You",
+              "timestamp": "2026-08-30T11:28:43Z"
             },
             {
               "ns": 0,
@@ -194,12 +176,30 @@
             },
             {
               "ns": 0,
-              "title": "Stella by Starlight",
-              "pageid": 18188826,
-              "size": 5928,
-              "wordcount": 622,
-              "snippet": "&quot;<span class=\"searchmatch\">Stella</span> by Starlight&quot; is a popular jazz standard with music by Victor Young that was drawn from thematic material composed for the main title and soundtrack",
-              "timestamp": "2026-08-18T21:45:05Z"
+              "title": "Stella Parton",
+              "pageid": 2577538,
+              "size": 15027,
+              "wordcount": 1658,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
+              "timestamp": "2026-10-23T06:31:52Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Artois",
+              "pageid": 28486,
+              "size": 25741,
+              "wordcount": 2393,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
+              "timestamp": "2026-10-25T12:35:58Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Jang",
+              "pageid": 69283293,
+              "size": 38071,
+              "wordcount": 1960,
+              "snippet": "Seong-eun (Korean: 장성은; born November 18, 1991), known professionally as <span class=\"searchmatch\">Stella</span> Jang (스텔라장), is a South Korean singer-songwriter. Jang was born on November",
+              "timestamp": "2026-09-20T23:11:58Z"
             }
           ]
         }
@@ -210,28 +210,28 @@
       "status": "pending",
       "requestedAmount": "2",
       "errorCode": "over_tx_cap",
-      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d"
+      "approvalId": "e53a1e11-0de7-4003-883c-597190a99de1"
     },
     {
       "step": "browser_approve_with_passkey",
       "status": "executed",
-      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
-      "transactionHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+      "approvalId": "e53a1e11-0de7-4003-883c-597190a99de1",
+      "transactionHash": "aa6603fdff7aab44b90c357aad2c86aa2fe519c99fd417044554cb29d7561b96"
     },
     {
       "step": "mcp_second_over_tx_cap_pending_approval",
       "status": "pending",
       "requestedAmount": "2",
       "errorCode": "over_tx_cap",
-      "approvalId": "3f9d5e29-cd0d-4c78-ac38-1cc0a6f92235",
+      "approvalId": "77420b7a-1b1d-477b-90c1-a09832a1ee0e",
       "leftPending": true
     }
   ],
-  "completedAt": "2026-10-17T02:42:18.815Z",
+  "completedAt": "2026-11-23T00:17:04.063Z",
   "wallet": {
-    "contractId": "CA2YOPT5ZOYUURPJKVCAZK3ISEO5377YQYFC7G5IFRVXRENR6BHLTV36",
-    "walletId": "f0895248-13f2-4c71-8e41-56cc0ad62f68",
-    "deploymentTxHash": "853ee06ecf48fe168aa8e389df717e01283ccc710fc86ea85cc6d5be9d867af7",
+    "contractId": "CAFPHY3M2BTJA2RIHMLRZHAHTWBHJ3L6X4YNV625GUTFHIYUIHFWS4MY",
+    "walletId": "0fb72fea-a47b-4215-83b2-ab5031ca6eb6",
+    "deploymentTxHash": "71d0648080d22da1b16fa4e6a8a1f4a3c844887098b6924290211b6f07bc3bd6",
     "registered": true,
     "onChainContextRuleCount": 1,
     "ownerRuleSignerCount": 1,
@@ -239,17 +239,17 @@
     "sessionAuthenticated": true,
     "funding": {
       "amountUsdc": "3",
-      "source": "GBHLUHQOF524MU4QHVCL65BYPMPXWGSQVMDCOZOAIL3D55MQEVCEUEFD",
-      "pathPaymentHash": "63372967d40387aa3903f9695706fa575706f8bd5d23c00201523693251aabc8",
-      "sacTransferHash": "58cd2f21b0b8fc84f2979ab2c2411a14fb47a654950f274002d04c886558e02b",
+      "source": "GAIYPZJCYQPNUIKWNHNQ3HOK5CTUJZ7QWF54BIBW7JWNI7RMLNQR6EVS",
+      "pathPaymentHash": "9523d31f4102572e60565a9898c235b60523d1418d84a49a984ab38d9ca591a0",
+      "sacTransferHash": "3a9ca82e2fd72093fc42c28f35eabfcedfcbc30e3ee3f6d4453b8f18b99e1941",
       "balanceAfterFundingStroops": "30000000"
     }
   },
   "grant": {
-    "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+    "grantId": "3e41620e-6f97-44b6-a01e-3b104fd43e63",
     "status": "active",
     "contextRuleId": 1,
-    "transactionHash": "d2172441295a26d80cbe73b70eb8c5f869210bf659617b5a6a3278590c328e25",
+    "transactionHash": "3cfbe141a15d341a5a098523b35b94001f0b238216c3b59798e3869c5a6e5910",
     "onChainContextRuleCount": 2,
     "liveBudget": {
       "spendingLimit": "50000000",
@@ -258,11 +258,11 @@
       "txMax": "10000000",
       "periodLedgers": 17280
     },
-    "expiresAt": "2026-10-24T02:40:51.474Z"
+    "expiresAt": "2026-11-30T00:15:54.788Z"
   },
   "oauth": {
     "clientName": "StellaBox Web E2E",
-    "grantId": "71a9a122-e80c-4a9d-a958-73c8533b3075",
+    "grantId": "3e41620e-6f97-44b6-a01e-3b104fd43e63",
     "pkceMethod": "S256",
     "consentUiUsed": true
   },
@@ -271,9 +271,9 @@
       "step": "mcp_send_payment_0_5_usdc",
       "status": "passed",
       "recipient": "GDICPDB4L2PVQFVLEG4CAR3XUQWS5OTRBQBOMQUYUVQDTKZ34IKETXAK",
-      "transactionHash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+      "transactionHash": "66c8f1cd5ab1c0bdd1d46268225641f1615a3688f638155c6b6238700c36bae4",
       "response": {
-        "tx_hash": "5c5963f9f02b86b09f8d01fe2dc8a9c5a7f3aa72abb8c8a1846740a515b97349",
+        "tx_hash": "66c8f1cd5ab1c0bdd1d46268225641f1615a3688f638155c6b6238700c36bae4",
         "remaining_budget_stroops": "45000000",
         "status": "confirmed"
       }
@@ -281,8 +281,8 @@
     "payX402": {
       "step": "mcp_pay_x402_search",
       "status": "passed",
-      "url": "http://localhost:4100/search?q=Stella",
-      "transactionHash": "dabcf829d476db62018f68c603a906494e8bd0ef648ba0545b5271d94cfb180e",
+      "url": "https://musicians-inch-comment-diploma.trycloudflare.com/search?q=Stella",
+      "transactionHash": "a5166b1b943625357c1f2b1dd61eb92b1dd0ad665dc1e9bd7be3871e62450fac",
       "responseBody": {
         "batchcomplete": "",
         "continue": {
@@ -291,80 +291,62 @@
         },
         "query": {
           "searchinfo": {
-            "totalhits": 34984
+            "totalhits": 35095
           },
           "search": [
             {
               "ns": 0,
               "title": "Stella",
               "pageid": 444168,
-              "size": 6987,
-              "wordcount": 835,
+              "size": 6967,
+              "wordcount": 828,
               "snippet": "Look up <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">stella</span> in Wiktionary, the free dictionary. <span class=\"searchmatch\">Stella</span> or <span class=\"searchmatch\">STELLA</span> may refer to: <span class=\"searchmatch\">Stella</span> (1921 film), directed by Edwin J. Collins <span class=\"searchmatch\">Stella</span> (1943",
-              "timestamp": "2026-04-09T15:14:06Z"
+              "timestamp": "2026-11-05T20:03:56Z"
             },
             {
               "ns": 0,
               "title": "Stella Lefty",
               "pageid": 83239960,
-              "size": 46924,
-              "wordcount": 3216,
+              "size": 48739,
+              "wordcount": 3312,
               "snippet": "<span class=\"searchmatch\">Stella</span> Lefkofsky (born August 13, 2002), better known by her stage name <span class=\"searchmatch\">Stella</span> Lefty, is an American singer-songwriter. Her 2026 country-pop single &quot;Boston&quot;",
-              "timestamp": "2026-10-16T23:49:13Z"
-            },
-            {
-              "ns": 0,
-              "title": "Lennon Stella",
-              "pageid": 59004930,
-              "size": 37206,
-              "wordcount": 2074,
-              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before going",
-              "timestamp": "2026-10-12T06:37:14Z"
+              "timestamp": "2026-11-21T20:45:13Z"
             },
             {
               "ns": 0,
               "title": "Maisy Stella",
               "pageid": 37437004,
-              "size": 15768,
-              "wordcount": 1018,
+              "size": 21249,
+              "wordcount": 1682,
               "snippet": "MaryLynne and Brad <span class=\"searchmatch\">Stella</span>, who are members of the country duo the <span class=\"searchmatch\">Stellas</span>, and she has an older sister, Lennon <span class=\"searchmatch\">Stella</span>. <span class=\"searchmatch\">Stella</span> is queer. <span class=\"searchmatch\">Stella</span> had her breakthrough",
-              "timestamp": "2026-08-26T01:02:55Z"
+              "timestamp": "2026-11-11T07:27:07Z"
+            },
+            {
+              "ns": 0,
+              "title": "Lennon Stella",
+              "pageid": 59004930,
+              "size": 37549,
+              "wordcount": 2136,
+              "snippet": "Lennon Ray Louise <span class=\"searchmatch\">Stella</span> is a Canadian-American singer and actress. She portrayed Maddie Conrad on the musical-drama series Nashville (2012–2018). Before",
+              "timestamp": "2026-11-11T02:45:28Z"
             },
             {
               "ns": 0,
               "title": "Stella McCartney",
               "pageid": 860648,
-              "size": 36236,
+              "size": 36208,
               "wordcount": 3067,
               "snippet": "<span class=\"searchmatch\">Stella</span> Nina McCartney (born 13 September 1971) is an English fashion designer. She is the daughter of English musician Paul McCartney and American photographer",
-              "timestamp": "2026-07-20T21:57:34Z"
+              "timestamp": "2026-11-08T22:51:23Z"
             },
             {
               "ns": 0,
-              "title": "Stella Artois",
-              "pageid": 28486,
-              "size": 25747,
-              "wordcount": 2393,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
-              "timestamp": "2026-09-21T20:16:17Z"
-            },
-            {
-              "ns": 0,
-              "title": "Stella Parton",
-              "pageid": 2577538,
-              "size": 15028,
-              "wordcount": 1658,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
-              "timestamp": "2026-09-21T21:34:04Z"
-            },
-            {
-              "ns": 0,
-              "title": "Stella Tennant",
-              "pageid": 5773829,
-              "size": 16250,
-              "wordcount": 1300,
-              "snippet": "<span class=\"searchmatch\">Stella</span> Tennant (17 December 1970 – 22 December 2020) was a British model and designer who rose to fame in the early 1990s and had a career that spanned",
-              "timestamp": "2026-10-05T16:26:12Z"
+              "title": "The Stellas",
+              "pageid": 35339189,
+              "size": 10656,
+              "wordcount": 979,
+              "snippet": "The <span class=\"searchmatch\">Stellas</span> were a married Canadian country music duo from Whitby, Ontario. They finished in fourth place on the second season of the CMT series Can You",
+              "timestamp": "2026-08-30T11:28:43Z"
             },
             {
               "ns": 0,
@@ -377,12 +359,30 @@
             },
             {
               "ns": 0,
-              "title": "Stella by Starlight",
-              "pageid": 18188826,
-              "size": 5928,
-              "wordcount": 622,
-              "snippet": "&quot;<span class=\"searchmatch\">Stella</span> by Starlight&quot; is a popular jazz standard with music by Victor Young that was drawn from thematic material composed for the main title and soundtrack",
-              "timestamp": "2026-08-18T21:45:05Z"
+              "title": "Stella Parton",
+              "pageid": 2577538,
+              "size": 15027,
+              "wordcount": 1658,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Mae Parton (born May 4, 1949) is an American country singer and songwriter widely known for a series of country singles that charted during the",
+              "timestamp": "2026-10-23T06:31:52Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Artois",
+              "pageid": 28486,
+              "size": 25741,
+              "wordcount": 2393,
+              "snippet": "<span class=\"searchmatch\">Stella</span> Artois (/ɑːrˈtwɑː/ ar-TWAH, French: [aʁtwɑ]) is a pilsner beer, first brewed in 1926 by Brouwerij Artois in Leuven, Belgium. In its original form",
+              "timestamp": "2026-10-25T12:35:58Z"
+            },
+            {
+              "ns": 0,
+              "title": "Stella Jang",
+              "pageid": 69283293,
+              "size": 38071,
+              "wordcount": 1960,
+              "snippet": "Seong-eun (Korean: 장성은; born November 18, 1991), known professionally as <span class=\"searchmatch\">Stella</span> Jang (스텔라장), is a South Korean singer-songwriter. Jang was born on November",
+              "timestamp": "2026-09-20T23:11:58Z"
             }
           ]
         }
@@ -391,18 +391,18 @@
     "approvedOverCap": {
       "step": "browser_approve_with_passkey",
       "status": "executed",
-      "approvalId": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
-      "transactionHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+      "approvalId": "e53a1e11-0de7-4003-883c-597190a99de1",
+      "transactionHash": "aa6603fdff7aab44b90c357aad2c86aa2fe519c99fd417044554cb29d7561b96"
     }
   },
   "approvals": {
     "executed": {
-      "id": "1e3365e6-be18-4e7d-b2c3-35b26f14f58d",
+      "id": "e53a1e11-0de7-4003-883c-597190a99de1",
       "status": "executed",
-      "txHash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+      "txHash": "aa6603fdff7aab44b90c357aad2c86aa2fe519c99fd417044554cb29d7561b96"
     },
     "pending": {
-      "id": "3f9d5e29-cd0d-4c78-ac38-1cc0a6f92235",
+      "id": "77420b7a-1b1d-477b-90c1-a09832a1ee0e",
       "status": "pending"
     }
   },
@@ -411,23 +411,23 @@
       {
         "status": 200,
         "success": true,
-        "hash": "853ee06ecf48fe168aa8e389df717e01283ccc710fc86ea85cc6d5be9d867af7"
+        "hash": "71d0648080d22da1b16fa4e6a8a1f4a3c844887098b6924290211b6f07bc3bd6"
       },
       {
         "status": 200,
         "success": true,
-        "hash": "d2172441295a26d80cbe73b70eb8c5f869210bf659617b5a6a3278590c328e25"
+        "hash": "3cfbe141a15d341a5a098523b35b94001f0b238216c3b59798e3869c5a6e5910"
       },
       {
         "status": 200,
         "success": true,
-        "hash": "4df8be1a0a1876df7df844d29ac823eb284e74533f41e2b167cefc0dff613e06"
+        "hash": "aa6603fdff7aab44b90c357aad2c86aa2fe519c99fd417044554cb29d7561b96"
       }
     ],
     "protocolSuccessResponses": 3
   },
   "finalBrowser": {
-    "url": "http://localhost:3000/app",
+    "url": "https://stellabox-web.vercel.app/app",
     "sessionAuthenticated": true,
     "virtualAuthenticatorCredentialCount": 1,
     "authenticatorRemoved": false,

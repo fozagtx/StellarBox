@@ -282,6 +282,16 @@ export const rateLimits = pgTable(
   (table) => [index("rate_limits_expires_at_idx").on(table.expiresAt)]
 );
 
+export const faucetJobs = pgTable("faucet_jobs", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull(),
+  hash: text("hash"),
+  message: text("message"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const schema = {
   users,
   passkeys,
@@ -297,6 +307,7 @@ export const schema = {
   pushSubscriptions,
   sessions,
   rateLimits,
+  faucetJobs,
 };
 
 export type Grant = typeof grants.$inferSelect;

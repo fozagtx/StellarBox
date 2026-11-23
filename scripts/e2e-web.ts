@@ -31,6 +31,11 @@ const apiUrl =
   process.env.NEXT_PUBLIC_API_URL ??
   process.env.PUBLIC_API_URL ??
   "http://localhost:4000";
+// In-page requests go where the app sends them: the web origin's /api proxy
+// when deployed (the session cookie lives there), the API itself on localhost.
+const browserApiUrl =
+  process.env.BROWSER_API_URL ??
+  (new URL(webUrl).hostname === "localhost" ? apiUrl : `${webUrl.replace(/\/$/, "")}/api`);
 const paidApiUrl =
   process.env.PAID_API_URL ??
   `http://localhost:${process.env.PAID_API_PORT ?? 4100}`;
@@ -126,7 +131,7 @@ async function browserJson<T>(page: Page, path: string): Promise<T> {
       }
       return body;
     },
-    { baseUrl: apiUrl, requestPath: path }
+    { baseUrl: browserApiUrl, requestPath: path }
   );
   return value as T;
 }
@@ -192,7 +197,8 @@ async function run() {
 
   const relayBodyReads: Promise<void>[] = [];
   page.on("response", (response) => {
-    if (new URL(response.url()).pathname !== "/relay") return;
+    const relayPath = new URL(response.url()).pathname;
+    if (relayPath !== "/relay" && relayPath !== "/api/relay") return;
     relayBodyReads.push(
       (async () => {
         let body: Partial<RelayResponse> = {};

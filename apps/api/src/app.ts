@@ -101,6 +101,9 @@ export function createApiApp(db: Database) {
   const config = loadApiConfig();
   const app = express();
   app.disable("x-powered-by");
+  // Vercel sets x-forwarded-for to the real client IP (and drops any value
+  // the client sent), so trust it there for per-IP rate limits.
+  if (process.env.VERCEL) app.set("trust proxy", true);
   app.use(cors({ origin: config.webUrl, credentials: true }));
   app.use(express.json({ limit: "256kb" }));
   const requireSession = createSessionMiddleware(db);

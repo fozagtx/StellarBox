@@ -17,6 +17,9 @@ export function loadApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     apiUrl:
       env.PUBLIC_API_URL ??
       env.RENDER_EXTERNAL_URL ??
+      (env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : undefined) ??
       "http://localhost:4000",
     webUrl:
       env.PUBLIC_WEB_URL ??
