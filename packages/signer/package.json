@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@stellabox/db": "workspace:*",
-    "@stellar/stellar-sdk": "16.3.1"
+    "@stellar/stellar-sdk": "16.4.1"
   },
   "devDependencies": {
     "drizzle-orm": "^0.45.4",

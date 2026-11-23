@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@openzeppelin/relayer-plugin-channels": "0.21.0",
-    "@stellar/stellar-sdk": "16.3.1",
+    "@stellar/stellar-sdk": "16.4.1",
     "@x402/stellar": "2.28.0",
     "smart-account-kit": "0.8.0",
     "smart-account-kit-bindings": "0.4.0"

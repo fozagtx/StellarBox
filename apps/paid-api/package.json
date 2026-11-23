@@ -9,7 +9,7 @@
     "lint": "eslint src --max-warnings=0"
   },
   "dependencies": {
-    "@stellar/stellar-sdk": "16.3.1",
+    "@stellar/stellar-sdk": "16.4.1",
     "@x402/core": "2.28.0",
     "@x402/stellar": "2.28.0",
     "@stellabox/stellar": "workspace:*",
