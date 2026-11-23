@@ -9,6 +9,8 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/fozagtx/StellarBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fozagtx/StellarBox/ci.yml?branch=main&label=CI" alt="CI"/></a>
+  <a href="https://github.com/fozagtx/StellarBox/actions/workflows/contracts.yml"><img src="https://img.shields.io/github/actions/workflow/status/fozagtx/StellarBox/contracts.yml?branch=main&label=Contracts%20CI" alt="Contracts CI"/></a>
   <img src="https://img.shields.io/badge/network-Stellar%20testnet-7D00FF?logo=stellar&logoColor=white" alt="Stellar testnet"/>
   <img src="https://img.shields.io/badge/Soroban-Rust-DEA584?logo=rust&logoColor=black" alt="Soroban"/>
   <img src="https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white" alt="Next.js"/>
