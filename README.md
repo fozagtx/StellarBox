@@ -1,40 +1,72 @@
 <p align="center">
-  <img src="assets/logo.svg" width="120" alt="StellaBox logo">
+  <img src="./assets/logo.svg" alt="StellaBox logo" width="120"/>
 </p>
 
 <h1 align="center">StellaBox</h1>
 
-**A non-custodial Stellar smart-account wallet where AI agents pay inside on-chain spending limits: passkey login, sponsored fees, revoke anytime.**
-
 <p align="center">
-  <a href="https://stellar.org"><img src="https://img.shields.io/badge/Stellar-Soroban-7D00FF?logo=stellar&logoColor=white" alt="Stellar"></a>
-  <img src="https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React">
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
-  <img src="https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white" alt="Express">
-  <img src="https://img.shields.io/badge/PostgreSQL-4169B1?logo=postgresql&logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/Drizzle_ORM-C5F74F?logo=drizzle&logoColor=black" alt="Drizzle ORM">
-  <img src="https://img.shields.io/badge/Rust-Soroban-DEA584?logo=rust&logoColor=black" alt="Rust / Soroban">
-  <img src="https://img.shields.io/badge/MCP-Server-8B5CF6?logoColor=white" alt="MCP">
-  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <strong>Smart-account wallet on Stellar where AI agents pay inside on-chain spending limits: passkey login, sponsored fees, revoke anytime</strong>
 </p>
 
 <p align="center">
-  <img src="https://cdn.simpleicons.org/stellar/7D00FF" height="18" alt="Stellar icon"> &nbsp;Built on <b>Stellar</b> smart accounts · <b>Testnet only</b>: every balance is test USDC and test XLM
+  <img src="https://img.shields.io/badge/network-Stellar%20testnet-7D00FF?logo=stellar&logoColor=white" alt="Stellar testnet"/>
+  <img src="https://img.shields.io/badge/Soroban-Rust-DEA584?logo=rust&logoColor=black" alt="Soroban"/>
+  <img src="https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white" alt="Next.js"/>
+  <img src="https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white" alt="Express"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-Drizzle-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/MCP-server-8B5CF6" alt="MCP"/>
+  <img src="https://img.shields.io/badge/deploy-Vercel-000000?logo=vercel&logoColor=white" alt="Vercel"/>
 </p>
 
-|                                                                                                                                                                                                                                                                             |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [How it works](#how-it-works) · [Architecture](#architecture) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quickstart](#quickstart) · [MCP tools](#mcp-tools) · [Deploy](#deploy-to-render) · [Repository layout](#repository-layout) · [Checks](#checks) · [Troubleshooting](#troubleshooting) |
+<p align="center">
+  <a href="https://stellabox-web.vercel.app">Live app</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#mcp-tools">MCP tools</a> •
+  <a href="#deploy">Deploy</a> •
+  <a href="https://github.com/fozagtx/StellarBox/issues">Issues</a>
+</p>
+
+---
+
+## What is StellaBox?
+
+StellaBox is a **non-custodial wallet for handing AI agents a budget**. Your wallet is an OpenZeppelin smart account on Stellar whose admin is a passkey on your device. You grant an agent a scoped key, and the limits on that key (a daily cap and a per-transaction cap) are enforced by Soroban policy contracts in the account's `__check_auth`, not by the server. An agent connects over MCP, pays in USDC or settles x402 requests, and asks you for approval for anything outside its grant. Every balance is test USDC and test XLM: StellaBox runs on **testnet only**.
+
+**Core Features:**
+- **Passkey smart account**: one P-256 passkey prompt creates the wallet and signs you in. No seed phrase, no browser extension
+- **On-chain agent limits**: each grant is a context rule with an Ed25519 agent signer, OpenZeppelin's spending-limit policy (daily cap) and this repo's `tx-max-policy` (per-transaction cap)
+- **Sponsored fees**: OpenZeppelin Channels pays network fees for deployments and payments, so the wallet never needs XLM for gas
+- **MCP server**: OAuth 2.1 scoped to one grant, with `send_payment`, `pay_x402`, `request_approval` and balance/activity tools
+- **Approvals and revocation**: out-of-grant requests reach you in the app (optional web push) and are confirmed with your passkey. Revoking removes the rule on-chain
+
+## Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Passkey wallet creation | ✅ Working | P-256 WebAuthn verifier; deployment relayed through Channels |
+| Fee sponsorship | ✅ Working | `/relay` checks the session and wallet ownership before Channels submits |
+| Agent grants (daily + per-tx caps) | ✅ Working | Enforced on-chain; recorded proof in `evidence/prove-caps-testnet.json` |
+| `tx-max-policy` contract | ✅ Working | Rust unit tests cover under/over cap, negative amounts, disallowed functions |
+| MCP server + OAuth 2.1 | ✅ Working | Stateless Streamable HTTP; one token is bound to one grant |
+| x402 payments | ✅ Working | Against the bundled paid API; see the facilitator fee note in Troubleshooting |
+| Approvals + web push | ✅ Working | Push needs VAPID keys |
+| Test USDC faucet | ✅ Working | Friendbot → XLM/USDC swap → SAC transfer into the `C…` account, once an hour |
+| Vercel deployment | ✅ Working | API as one serverless function, web as Next.js; see [Deploy](#deploy) |
+| Mainnet | ⛔ Not supported | The network is pinned to testnet in `packages/stellar/src/config.ts` |
+
+### Known limitations (testnet)
+
+- **Agent keys live on the server.** They're encrypted under `KEYSTORE_MASTER_KEY`, and the on-chain caps bound what a leaked key can spend, but the server can sign anything within a grant.
+- **Sponsorship limits are coarse.** Wallet deploys are limited to 5 a minute per IP; signed-in relays rely on the ownership check alone, with no per-user quota yet.
+- **The x402 demo API is not on Vercel.** `apps/paid-api` runs locally or on any Node host. `pay_x402` works with any HTTPS x402 endpoint.
 
 ## How it works
 
-1. **Create a wallet.** The browser creates a P-256 passkey and deploys an OpenZeppelin smart account whose admin signer is that passkey. OpenZeppelin Channels relays the deployment, so fees are sponsored. The passkey prompt doubles as sign-in, so you see one prompt.
-2. **Fund it.** Tap **Get test USDC** on the Deposit page: the API funds a throwaway account with Friendbot, swaps XLM for Circle testnet USDC, and transfers it into the wallet (Circle's faucet only reaches `G…` accounts, not the wallet's `C…` contract address).
-3. **Grant an agent.** A grant adds a context rule on-chain: an Ed25519 agent signer, OpenZeppelin's spending-limit policy (daily cap), and this repo's `tx-max-policy` contract (per-transaction cap). You sign the rule with your passkey; the API stores the agent key encrypted under `KEYSTORE_MASTER_KEY`.
-4. **The agent pays.** An MCP client authorizes with OAuth against one grant, then calls `send_payment` or `pay_x402`. The agent key signs the authorization, the policies check it on-chain, and Channels submits it.
-5. **Approve the rest.** Anything outside the grant goes through `request_approval`; you approve or reject in the app (with optional web push), confirming with your passkey.
+1. **Create a wallet.** The browser creates a passkey and deploys a smart account whose admin signer is that passkey. Channels relays the deployment, so fees are sponsored.
+2. **Fund it.** **Get test USDC** on the Deposit page funds a throwaway account with Friendbot, swaps XLM for Circle testnet USDC and transfers it into the wallet. Circle's faucet only reaches `G…` accounts, not the wallet's `C…` address.
+3. **Grant an agent.** You sign a context rule with your passkey. The API stores the agent key encrypted.
+4. **The agent pays.** An MCP client authorizes against one grant and calls `send_payment` or `pay_x402`. The agent key signs, the policies check it on-chain, and Channels submits it.
+5. **Approve the rest.** Anything outside the grant goes through `request_approval`, which you approve or reject with your passkey.
 6. **Revoke anytime.** Revoking a grant removes its context rule on-chain.
 
 ## Architecture
@@ -116,54 +148,60 @@ sequenceDiagram
     end
 ```
 
-## Tech stack
+## Quick Start
 
-| Layer | What it is |
-| --- | --- |
-| **Chain** | <img src="https://cdn.simpleicons.org/stellar/7D00FF" height="14" alt="Stellar"> Stellar (Soroban) · OpenZeppelin smart accounts & Channels · Rust `tx-max-policy` contract · `@stellar/stellar-sdk` |
-| **Web** | Next.js 15 · React 19 · Tailwind CSS 4 · SimpleWebAuthn (P-256 passkeys) |
-| **API** | Express 5 · Zod · OAuth 2.1 + MCP server · web-push (VAPID) · x402 |
-| **Data** | PostgreSQL · Drizzle ORM · encrypted Ed25519 keystore (`packages/signer`) |
-| **Tooling** | pnpm workspaces · TypeScript 5 · Vitest · Docker Compose · Render Blueprint |
-
-## Requirements
-
-- **Node.js 24** and **pnpm 11**
-- **Docker** (for the local PostgreSQL)
-- **OpenZeppelin Channels API key** (free testnet key, [channels.openzeppelin.com/testnet/gen](https://channels.openzeppelin.com/testnet/gen))
-- **Rust** only to test the policy contract
-
-## Quickstart
+Requires **Node.js 24**, **pnpm 11**, **Docker** (local PostgreSQL), a free **[OpenZeppelin Channels testnet key](https://channels.openzeppelin.com/testnet/gen)**, and **Rust** only for the policy contract.
 
 ```bash
 git clone https://github.com/fozagtx/StellarBox && cd StellarBox
 pnpm install
 docker compose up -d                       # PostgreSQL on localhost:5433
-cp .env.example .env                       # then fill it in (see below)
+cp .env.example .env                       # fill it in (see below)
 pnpm --filter @stellabox/db db:migrate
 pnpm --filter @stellabox/api start         # http://localhost:4000
 pnpm --filter @stellabox/web dev           # http://localhost:3000
-pnpm --filter @stellabox/paid-api start    # http://localhost:4100 (optional)
+pnpm --filter @stellabox/paid-api start    # http://localhost:4100 (optional x402 demo)
 ```
 
-For local Docker, set `DATABASE_URL=postgres://stellabox:stellabox@localhost:5433/stellabox` (the value in `.env.example` assumes a natively installed PostgreSQL on 5432). Passkeys work on `localhost` over plain HTTP; on any other host they need HTTPS.
+For local Docker, set `DATABASE_URL=postgres://stellabox:stellabox@localhost:5433/stellabox`. Passkeys work on `localhost` over plain HTTP; any other host needs HTTPS.
 
 ### Environment variables
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | yes | Any PostgreSQL connection string |
+| `DATABASE_URL` | yes | Any PostgreSQL connection string (use a pooled one on serverless) |
 | `SESSION_SECRET` | yes | Long random string. Signs session cookies and registration challenges |
-| `KEYSTORE_MASTER_KEY` | yes | Encrypts agent keys. Generate with `openssl rand -base64 32` |
-| `CHANNELS_API_KEY` | yes | Free testnet key from [OpenZeppelin Channels](https://channels.openzeppelin.com/testnet/gen). Without it, wallet creation and every sponsored transaction fail |
-| `PUBLIC_WEB_URL` | yes, outside Render | Origin of the web app. Must match the browser origin exactly; passkeys are bound to it |
-| `PUBLIC_API_URL` | yes, outside Render | Public origin of the API, used for OAuth and MCP metadata |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | optional | Web push for approvals. Generate with `npx web-push generate-vapid-keys` |
+| `KEYSTORE_MASTER_KEY` | yes | Encrypts agent keys. `openssl rand -base64 32` |
+| `CHANNELS_API_KEY` | yes | Without it, wallet creation and every sponsored transaction fail |
+| `PUBLIC_WEB_URL` | yes, when deployed | Web app origin. Passkeys are bound to it, so it must match exactly |
+| `PUBLIC_API_URL` | yes, when deployed | Public API origin, used for OAuth and MCP metadata |
+| `API_HOST` | web only | API hostname; the web app proxies `/api/*` to it so cookies stay same-origin |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | optional | Web push for approvals. `npx web-push generate-vapid-keys` |
 | `STELLAR_*`, contract addresses | optional | Override values from `deployments/testnet.json` |
+
+## Project Structure
+
+```
+StellarBox/
+├── apps/
+│   ├── web/              # Next.js: landing, passkey onboarding, dashboard, grants, approvals, OAuth screen
+│   ├── api/              # Express: passkey auth, /relay sponsor, grants, approvals, OAuth, MCP at /mcp
+│   │   └── api/index.js  # Vercel serverless entry (bundled from src/vercel.ts)
+│   └── paid-api/         # x402 demo service: GET /search ($0.01), GET /weather ($0.02)
+├── packages/
+│   ├── db/               # Drizzle schema, SQL migrations, repositories
+│   ├── signer/           # Encrypted keystore for agent Ed25519 keys
+│   └── stellar/          # Network config, Channels client, grant rule builders, funding
+├── contracts/
+│   └── tx-max-policy/    # Soroban policy capping any single transfer (Rust)
+├── deployments/          # Testnet contract addresses and account WASM hash
+├── scripts/              # End-to-end checks against testnet
+└── evidence/             # Recorded output from those testnet runs
+```
 
 ## MCP tools
 
-Connect an MCP client to `<API URL>/mcp`. The client goes through OAuth, and you pick or create the grant it may use.
+Connect an MCP client to `https://stellabox-api.vercel.app/mcp` (or `<API URL>/mcp`). The client goes through OAuth, and you pick or create the grant it may use.
 
 | Tool | Purpose |
 | --- | --- |
@@ -174,51 +212,44 @@ Connect an MCP client to `<API URL>/mcp`. The client goes through OAuth, and you
 | `request_approval` / `get_approval` | Ask the owner to approve an action and check its status |
 | `get_activity` | Recent actions for the grant |
 
-## Deploy to Render
+## Deploy
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/fozagtx/StellarBox)
+### Vercel
 
-Use the Blueprint in `render.yaml`. It creates three services (`stellabox-api`, `stellabox-paid-api`, `stellabox-web`), generates `SESSION_SECRET` and `KEYSTORE_MASTER_KEY`, and wires `WEB_HOST`/`API_HOST` between them. Migrations run when the API starts. Fill in:
+StellaBox deploys as two Vercel projects from this one repo:
 
-- `DATABASE_URL` on `stellabox-api`: any PostgreSQL connection string (Render, Neon, Supabase). Render allows one free database per workspace, so the Blueprint doesn't create one.
-- `CHANNELS_API_KEY` on `stellabox-api`: get a key from [channels.openzeppelin.com/testnet/gen](https://channels.openzeppelin.com/testnet/gen).
-- `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (optional): approval push notifications.
-- `PAID_API_FACILITATOR_SECRET` on `stellabox-paid-api` (optional): a funded testnet secret key for x402 settlement. Left blank, the service creates a key, funds it with Friendbot, and logs only its public address.
+| Project | Root directory | What it runs |
+| --- | --- | --- |
+| `stellabox-api` | `apps/api` | Migrations at build, then the Express app as one function (`apps/api/vercel.json`) |
+| `stellabox-web` | `apps/web` | Next.js, proxying `/api/*` to `API_HOST` |
 
-The paid API pays out to the merchant account in `deployments/testnet.json`. Set `PAID_API_MERCHANT_ADDRESS` only for a different merchant account with a USDC trustline. After deploying, `https://<api-host>/health` should return `{"ok":true,"channelsConfigured":true,...}`.
+1. Create a PostgreSQL database (Neon works well; use its **pooled** connection string).
+2. Create both projects with the root directories above and Node 24.
+3. On `stellabox-api`, set `DATABASE_URL`, `CHANNELS_API_KEY`, `SESSION_SECRET`, `KEYSTORE_MASTER_KEY`, `PUBLIC_WEB_URL` and `PUBLIC_API_URL`. On `stellabox-web`, set `API_HOST`.
+4. Deploy the API first, then the web app. `https://<api-host>/health` should return `{"ok":true,"channelsConfigured":true,...}`.
 
-## Repository layout
+The faucet keeps its job state in Postgres and uses `waitUntil`, so funding finishes after the response and any instance can answer the poll. The API function allows up to 120 s.
 
-```
-apps/web                 Next.js app: landing, passkey onboarding, dashboard, grants, approvals, OAuth screen
-                         (proxies /api/* so session cookies stay same-origin)
-apps/api                 Express API :4000: passkey auth, wallet registration, /relay sponsor, grants,
-                         approvals, OAuth, MCP server at /mcp
-apps/paid-api            x402 demo service :4100: GET /search ($0.01), GET /weather ($0.02)
-packages/db              Drizzle schema, SQL migrations, repositories (PostgreSQL)
-packages/signer          Encrypted keystore for agent Ed25519 keys
-packages/stellar         Stellar config, Channels client, grant rule builders, testnet cap proof
-contracts/tx-max-policy  Soroban policy contract capping any single transfer (Rust)
-deployments/testnet.json Deployed testnet contract addresses and account WASM hash
-scripts/                 End-to-end checks against testnet (e2e-api, e2e-web, prove-caps)
-evidence/                Recorded output from those testnet runs
-```
+### Other hosts
 
-## Checks
+`render.yaml` is a Render Blueprint for the same three services. Any Node host works: build with `pnpm install`, run `pnpm --filter @stellabox/db db:migrate`, then `pnpm --filter @stellabox/api start`.
+
+## Contributing
 
 ```bash
+# Before opening a PR
 pnpm typecheck
 pnpm lint
 pnpm test                                        # API tests need the Docker PostgreSQL on :5433
 cargo test -p tx-max-policy
-pnpm e2e:api                                     # end-to-end against testnet (needs a filled .env)
+pnpm e2e:api                                     # end to end against testnet (needs a filled .env)
 pnpm --filter @stellabox/stellar prove:testnet   # on-chain cap proof
 ```
 
 ## Troubleshooting
 
 **"Fee sponsoring is not configured: set CHANNELS_API_KEY on the stellabox-api service."**
-The API has no Channels key, so it can't sponsor the wallet deployment. Get a key from the [`/gen` endpoint](https://channels.openzeppelin.com/testnet/gen). In Render, open **stellabox-api → Environment**, add `CHANNELS_API_KEY`, and save (this redeploys). Confirm with `/health` (`channelsConfigured: true`).
+The API has no Channels key, so it can't sponsor the wallet deployment. Get a key from the [`/gen` endpoint](https://channels.openzeppelin.com/testnet/gen), add `CHANNELS_API_KEY` to the `stellabox-api` project (Vercel → Settings → Environment Variables), and redeploy. Confirm with `/health` (`channelsConfigured: true`).
 
 **`GET /api/auth/session 401` in the console on the onboarding page.**
 Expected before you sign in; the page checks for an existing session on load.
@@ -237,3 +268,9 @@ Tap the button again and finish the prompt. If wallet creation succeeded but sig
 
 **"No StellaBox passkey is saved in this browser yet."**
 Sign-in looks up the credential saved by this browser at wallet creation. Use the browser that created the wallet, or create a new wallet.
+
+---
+
+<p align="center">
+  <sub>Built with OpenZeppelin smart accounts, Soroban, and the Model Context Protocol</sub>
+</p>
